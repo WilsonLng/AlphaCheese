@@ -73,7 +73,7 @@ ADDR_PRESENT_POSITION   = 36
 PROTOCOL_VERSION            = 1.0               # See which protocol version is used in the Dynamixel
 
 # Default setting
-DXL_ID                      = 2                 # Dynamixel ID : 1
+DXL_ID                      = 4                 # Dynamixel ID : 1
 BAUDRATE                    = 1000000             # Dynamixel default baudrate : 57600
 DEVICENAME                  = '/dev/ttyUSB0'    # Check which port is being used on your controller
                                                 # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
@@ -99,10 +99,12 @@ class pyNode(Node):
         print("Set Goal Position of ID %s = %s" % (data.id, data.position))
         dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, data.id, ADDR_GOAL_POSITION, data.position)
 
-    def get_present_pos(self, req):
+    # Added third argument as callback doesn't work with just two
+    def get_present_pos(self, req, res):
         dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, req.id, ADDR_PRESENT_POSITION)
         print("Present Position of ID %s = %s" % (req.id, dxl_present_position))
-        return dxl_present_position
+        # remove return as it is not needed
+        res.position = int(dxl_present_position)
 
 def read_write_py_node(args=None):
     rclpy.init(args=args)
