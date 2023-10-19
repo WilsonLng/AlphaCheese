@@ -28,6 +28,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BulkSetItem.msg"
   "msg/SetPosition.msg"
   "msg/SyncSetPosition.msg"
+  "msg/DecimalPosition.msg"
+  "msg/XYPosition.msg"
   "srv/GetPosition.srv"
 )
 
