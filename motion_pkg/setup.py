@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'read_write_node = motion_pkg.read_write_node:main'
+            'read_write_node = motion_pkg.read_write_node:main',
+            'angle_producer = motion_pkg.angle_producer:main'
         ],
     },
 )
