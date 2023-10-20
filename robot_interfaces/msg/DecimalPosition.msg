@@ -1,4 +1,9 @@
-float32 angle1
-float32 angle2
-float32 angle3
-float32 angle4
+float32 angle01
+float32 angle02
+float32 angle03
+float32 angle04
+float32 angle11
+float32 angle12
+float32 angle13
+float32 angle14
+string move
