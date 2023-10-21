@@ -30,7 +30,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SyncSetPosition.msg"
   "msg/DecimalPosition.msg"
   "msg/XYPosition.msg"
+  "msg/PiecePosition.msg"
   "srv/GetPosition.srv"
+  "msg/OneMove.msg"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
