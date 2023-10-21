@@ -20,14 +20,18 @@ else:
 
     thetas = []
 
-    theta11 = alphd + math.degrees(math.acos(k / n))
-    theta12 = alphd - math.degrees(math.acos(k / n))
+    # theta11 = alphd + math.degrees(math.acos(k / n))
+    theta11 = alphd + math.acos(k / n)
+    # theta12 = alphd - math.degrees(math.acos(k / n))
+    theta12 = 0
 
     theta21 = - theta11 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta11))) / l2)))
-    theta22 = - theta12 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta12))) / l2)))
+    # theta22 = - theta12 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta12))) / l2)))
+    theta22 = 0
 
-    theta31 = 270 - theta11 - theta21
-    theta32 = 270 - theta12 - theta22
+    theta31 = -90 - theta11 - theta21
+    # theta32 = 270 - theta12 - theta22
+    theta32 = 0
 
     thetas.extend([theta11, theta12, theta21, theta22, theta31, theta32])
 
