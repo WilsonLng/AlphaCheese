@@ -45,7 +45,7 @@ packetHandler = PacketHandler(PROTOCOL_VERSION)
 
 class pyNode(Node):
     def __init__(self):
-        super().__init__('read_write_py_node')
+        super().__init__('mover')
         self.subscriber_ = self.create_subscription(SetPosition, 'set_position', self.set_goal_pos_callback, 10)
         self.service_ = self.create_service(GetPosition, 'get_position', self.get_present_pos)
         self.get_logger().info("Hello World")
@@ -53,6 +53,7 @@ class pyNode(Node):
     def set_goal_pos_callback(self, data):
         angle01, angle02, angle03, angle04 = data.angle01, data.angle02, data.angle03, data.angle04
         angle11, angle12, angle13, angle14 = data.angle11, data.angle12, data.angle13, data.angle14
+        mov = data.move
 
         servos_goal_positions1 = [angle01, angle02, angle03, angle04]
         servos_goal_positions2 = [angle11, angle12, angle13, angle14]
