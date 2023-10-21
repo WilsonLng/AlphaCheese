@@ -21,7 +21,9 @@ setup(
     entry_points={
         'console_scripts': [
             'read_write_node = motion_pkg.read_write_node:main',
-            'angle_producer = motion_pkg.angle_producer:main'
+            'angles_producer = motion_pkg.angles_producer:main',
+            'mover = motion_pkg.mover:main',
+            'moveAndTake = motion_pkg.moveAndTake:main'
         ],
     },
 )
