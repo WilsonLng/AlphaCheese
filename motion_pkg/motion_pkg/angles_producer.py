@@ -80,6 +80,9 @@ class angleNode(Node):
             thetas[1] = thetas[1] + 60
             thetas[2] = 300 - thetas[2]
 
+            for i in range(len(thetas)):
+                thetas[i] = thetas[i] * 1024 / 300;
+
             return [findYawRad(position), thetas[0], thetas[2], thetas[4]]
         
         goal1Angles = anglesProduce(pos1)
