@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'motion_pkg'
+package_name = 'comp_vision'
 
 setup(
     name=package_name,
@@ -11,20 +11,16 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools', 'pyserial'],
+    install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='rostwotesting',
-    maintainer_email='wilsonzzz19@gmail.com',
+    maintainer='root',
+    maintainer_email='stevennedwinn@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'read_write_node = motion_pkg.read_write_node:main',
-            'angles_producer = motion_pkg.angles_producer:main',
-            'mover = motion_pkg.mover:main',
-            'moveAndTake = motion_pkg.moveAndTake:main',
-            'Ax12 = motion_pkg.Ax12:main'
+            'testCam = comp_vision.testCam:main',
         ],
     },
 )

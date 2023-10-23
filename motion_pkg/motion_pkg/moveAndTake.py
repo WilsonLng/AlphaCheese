@@ -197,44 +197,44 @@ class pyNode(Node):
 
         servo_ids = [1, 2, 3, 4, 5]
 
-        info = data.split()
+        # info = data.split()
 
-        if info[2] == 'x':
-            #TODO
-            '''
-                Steps:
-                1.default
-                2.info[1][5:]
-                3.info[1][:5]
-                4.info[1][5:]
-                5.out
-                6.info[0][5:]
-                7.info[0][:5]
-                8.info[0][5:]
-                9.info[1][5:]
-                10.info[1][:5]
-                11.info[1][5:]
-                12.default
-            '''
-        elif info[2] == 'm':
-            #TODO
-            '''
-                Steps:
-                1.default
-                2.info[0][5:]
-                3.info[0][:5]
-                4.info[0][5:]
-                5.info[1][5:]
-                6.info[1][:5]
-                7.info[1][5:]
-                8.default
-            '''
-        elif info[2] == '=':
-            #TODO
-        elif info[2] == '#':
-            #TODO
-        else:
-            #TODO
+        # if info[2] == 'x':
+            #pass
+            # '''
+            #     Steps:
+            #     1.default
+            #     2.info[1][5:]
+            #     3.info[1][:5]
+            #     4.info[1][5:]
+            #     5.out
+            #     6.info[0][5:]
+            #     7.info[0][:5]
+            #     8.info[0][5:]
+            #     9.info[1][5:]
+            #     10.info[1][:5]
+            #     11.info[1][5:]
+            #     12.default
+            # '''
+        # elif info[2] == 'm':
+            #pass
+            # '''
+            #     Steps:
+            #     1.default
+            #     2.info[0][5:]
+            #     3.info[0][:5]
+            #     4.info[0][5:]
+            #     5.info[1][5:]
+            #     6.info[1][:5]
+            #     7.info[1][5:]
+            #     8.default
+            # '''
+        # elif info[2] == '=':
+            #pass
+        # elif info[2] == '#':
+            #pass
+        # else:
+            #pass
 
 
         # servos_default = [512, 512, 512, 512, openGripper]``
@@ -255,22 +255,31 @@ class pyNode(Node):
             print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
             dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
             # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
+            # for i in range(int(position)):
+            #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
+            #     time.sleep(0.5)
 
-        time.sleep(2)
+        time.sleep(5)
 
         for servo_id, position in zip(servo_ids, chessPosition['a8'][5:]):
             print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
             dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
             # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
+            # for i in range(int(position)):
+            #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
+            #     time.sleep(0.5)
 
-        time.sleep(2)
+        time.sleep(5)
 
         for servo_id, position in zip(servo_ids, chessPosition['a8'][:5]):
             print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
             dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
             # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
+            # for i in range(int(position)):
+            #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
+            #     time.sleep(0.5)
 
-        time.sleep(2)
+        time.sleep(5)
 
         # servos_default = [512, 512, 512, 512, openGripper]
         # for servo_id, position in zip(servo_ids, servos_default):
