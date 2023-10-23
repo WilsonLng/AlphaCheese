@@ -27,6 +27,8 @@ ADDR_TORQUE_ENABLE      = 24               # Control table address is different 
 ADDR_GOAL_POSITION      = 30
 ADDR_PRESENT_POSITION   = 36
 ADDR_MOVING_SPEED       = 32
+ADDR_CW_LIMIT = 6
+ADDR_CCW_LIMIT = 8
 
 # Protocol version
 PROTOCOL_VERSION            = 1.0               # See which protocol version is used in the Dynamixel
@@ -50,78 +52,12 @@ class pyNode(Node):
     def __init__(self):
         super().__init__('moveAndTake')
         self.subscriber_ = self.create_subscription(OneMove, 'which_position', self.set_goal_pos_callback, 10)
-        self.service_ = self.create_service(GetPosition, 'get_position', self.get_present_pos)
-        self.get_logger().info("Hello World")
+        self.previous_message = None
+        self.get_logger().info("Robot")
 
     def set_goal_pos_callback(self, data):
         def c(val):
             return val * 1023 / 300
-        
-        def anglesProduce(position: str, yf):
-            R = 3
-            d = 1.5                         # Distance between robotic arm and chess board
-            side = 2.75
-
-            num = 1
-            hordict = {}
-
-            for i in "abcdefgh":
-                hordict[i] = num
-                num +=1
-
-            def findXf(pos):
-                ver = int(pos[1])
-                hor = hordict[pos[0]]
-                return (R + ((R + d + side*(ver - 1) + (side/2))**2 + (side*(hor - 5) + (side/2))**2)**(1/2))
-
-            def findYawRad(pos):
-                ver = int(pos[1])
-                hor = hordict[pos[0]]
-                return (math.atan((side*(hor - 5) + (side/2)) / (R + d + side*(ver - 1) + (side/2))))*(180/math.pi)+150
-
-            xf = findXf(position)
-            # yf = 0
-
-            l1 = 15.75
-            l2 = 13.25
-            l3 = 17.40
-            
-            k = (xf ** 2) + (yf ** 2) + (l1 ** 2) - (l2 ** 2) + (2 * yf * l3) + (l3 ** 2)
-            n = math.sqrt(((2 * xf * l1) ** 2) + ((2 * yf * l1 + 2 * l1 * l3) ** 2))
-
-            alphr = math.atan((2 * yf * l1 + 2 * l1 * l3) / (2 * xf * l1))
-            alphd = math.degrees(alphr)
-
-            thetas = []
-
-            theta11 = alphd + math.degrees(math.acos(k / n))
-            theta12 = alphd - math.degrees(math.acos(k / n))
-
-            theta21 = - theta11 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta11))) / l2)))
-            theta22 = - theta12 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta12))) / l2)))
-
-            theta31 = 270 - theta11 - theta21
-            theta32 = 270 - theta12 - theta22
-
-            thetas.extend([theta11, theta12, theta21, theta22, theta31, theta32])
-
-            for i in range(len(thetas)):
-                if thetas[i] < 0:
-                    thetas[i] = thetas[i] + 360
-                elif thetas[i] > 360:
-                    thetas[i] = thetas[i] - 360
-
-            for i in range(2, len(thetas)):
-                thetas[i] = thetas[i] - 120
-
-            thetas[0] = thetas[0] + 60
-            thetas[1] = thetas[1] + 60
-            thetas[2] = 300 - thetas[2]
-
-            for i in range(len(thetas)):
-                thetas[i] = thetas[i] * 1024 / 300;
-
-            return [findYawRad(position), thetas[0], thetas[2], thetas[4]]
         
         chessPosition = {
             'a1': [],
@@ -131,7 +67,7 @@ class pyNode(Node):
             'a5': [],
             'a6': [],
             'a7': [],
-            'a8': [512,c(103.4),c(87.9),c(159.1),c(0),512,c(126.9),c(110.5),c(177.5),c(50)],
+            'a8': [c(175),c(98),c(63),c(136),c(0),c(175),c(135),c(100),c(159),c(50)],
             'b1': [],
             'b2': [],
             'b3': [],
@@ -188,19 +124,33 @@ class pyNode(Node):
             'h6': [],
             'h7': [],
             'h8': [],
-            'default': [c(150),c(185),c(178),c(138),c(0)],
+            'default': [512,c(185),c(178),c(138),c(0)],
             'out': []
         }
 
-        def moveTo(loc: str, speed=81):
-            for servo_id, position in zip(servo_ids, chessPosition[loc][5:]):
+        def moveToBefore(loc: str, speed=81):
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_MOVING_SPEED, speed)
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_GOAL_POSITION, int(chessPosition[loc][5]))
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_MOVING_SPEED, speed)
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_GOAL_POSITION, int(c(220)))
+            print("nsnsakdnkqkweknwqkneknwqkenkw")
+            time.sleep(3)
+            for servo_id, position in zip(servo_ids[2:], chessPosition[loc][7:]):
+                print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_MOVING_SPEED, speed)
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_GOAL_POSITION, int(chessPosition[loc][6]))
+
+        def moveToAfter(loc: str, speed=81):
+            for servo_id, position in zip(servo_ids, chessPosition[loc][:5]):
                 print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
 
         servo_ids = [1, 2, 3, 4, 5]
 
-        # info = data.split()
+        # info = data.location.split()
 
         # if info[2] == 'x':
             #pass
@@ -258,9 +208,13 @@ class pyNode(Node):
             print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, 81)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-        #     # for i in range(int(position)):
-        #     #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
-        #     #     time.sleep(0.5)
+
+        time.sleep(5)
+        moveToBefore("a8")
+        time.sleep(5)
+        moveToAfter("a8")
+        time.sleep(5)
+        moveToBefore("a8")
 
         # time.sleep(2)
 
@@ -288,20 +242,6 @@ class pyNode(Node):
         # for servo_id, position in zip(servo_ids, servos_default):
         #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
         #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-
-    def get_present_pos(self, req, res):
-        positions = []
-
-        for servo_id in req.ids:
-            dxl_present_position, _, _ = packetHandler.read4ByteTxRx(portHandler, servo_id, ADDR_PRESENT_POSITION)
-            positions.append(int(dxl_present_position))
-
-        for i in positions:
-            print(i, end=" ")
-        
-        print()
-
-        res.positions = positions
 
 def read_write_py_node(args=None):
     rclpy.init(args=args)
