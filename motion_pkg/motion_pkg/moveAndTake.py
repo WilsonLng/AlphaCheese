@@ -26,7 +26,7 @@ def getch():
 ADDR_TORQUE_ENABLE      = 24               # Control table address is different in Dynamixel model
 ADDR_GOAL_POSITION      = 30
 ADDR_PRESENT_POSITION   = 36
-# ADDR_MOVING_SPEED       = 32
+ADDR_MOVING_SPEED       = 32
 
 # Protocol version
 PROTOCOL_VERSION            = 1.0               # See which protocol version is used in the Dynamixel
@@ -188,12 +188,15 @@ class pyNode(Node):
             'h6': [],
             'h7': [],
             'h8': [],
-            'default': [512,c(239.36),c(198.93),c(150.88),c(0)],
+            'default': [c(150),c(185),c(178),c(138),c(0)],
             'out': []
         }
 
-        openGripper = 50 * 1023 / 300
-        closeGripper = 0
+        def moveTo(loc: str, speed=81):
+            for servo_id, position in zip(servo_ids, chessPosition[loc][5:]):
+                print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
 
         servo_ids = [1, 2, 3, 4, 5]
 
@@ -249,37 +252,37 @@ class pyNode(Node):
         #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
         #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
 
-        desired_speed = 100
+        desired_speed = 81
 
         for servo_id, position in zip(servo_ids, chessPosition['default']):
             print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
-            dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
-            # for i in range(int(position)):
-            #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
-            #     time.sleep(0.5)
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, 81)
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
+        #     # for i in range(int(position)):
+        #     #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
+        #     #     time.sleep(0.5)
 
-        time.sleep(5)
+        # time.sleep(2)
 
-        for servo_id, position in zip(servo_ids, chessPosition['a8'][5:]):
-            print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
-            dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
-            # for i in range(int(position)):
-            #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
-            #     time.sleep(0.5)
+        # for servo_id, position in zip(servo_ids, chessPosition['a8'][5:]):
+        #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
+        #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, 81)
+        #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
+        #     # for i in range(int(position)):
+        #     #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
+        #     #     time.sleep(0.5)
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        for servo_id, position in zip(servo_ids, chessPosition['a8'][:5]):
-            print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
-            dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
-            # for i in range(int(position)):
-            #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
-            #     time.sleep(0.5)
+        # for servo_id, position in zip(servo_ids, chessPosition['a8'][:5]):
+        #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
+        #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
+        #     # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
+        #     # for i in range(int(position)):
+        #     #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
+        #     #     time.sleep(0.5)
 
-        time.sleep(5)
+        # time.sleep(5)
 
         # servos_default = [512, 512, 512, 512, openGripper]
         # for servo_id, position in zip(servo_ids, servos_default):
