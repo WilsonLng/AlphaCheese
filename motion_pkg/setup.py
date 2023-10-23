@@ -25,7 +25,8 @@ setup(
             'mover = motion_pkg.mover:main',
             'moveAndTake = motion_pkg.moveAndTake:main',
             'Ax12 = motion_pkg.Ax12:main',
-            'speedster = motion_pkg.speedster:main'
+            'speedster = motion_pkg.speedster:main',
+            'moveAndInverseKinematics = motion_pkg.moveAndInverseKinematics:main'
         ],
     },
 )
