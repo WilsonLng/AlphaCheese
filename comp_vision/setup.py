@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'testCam = comp_vision.testCam:main',
+            'testCamModel = comp_vision.testCamModel:main'
         ],
     },
 )
