@@ -77,9 +77,13 @@ class Trapezium:
         sorted_intersection_points = np.array(sorted(self.intersection_points, key=lambda p: (p[1], p[0]))).reshape(9, 9, 2)
         pos = np.zeros((8, 8), dtype=object)
 
+        # for i in range(8):
+        #     for j in range(8):
+        #         pos[7 - i, j] = chr(j + 97) + str(i + 1)
+
         for i in range(8):
             for j in range(8):
-                pos[7 - i, j] = chr(j + 97) + str(i + 1)
+                pos[i, j] = chr(104 - i) + str(j + 1)
 
         # print("pos: ", pos)
 
@@ -168,12 +172,12 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
     # Define the x value ranges
     
     ## METHOD 1
-#     x_max_range = (max_point["x"], max_point["x"] - range_xmax)
-#     x_min_range = (min_point["x"], min_point["x"] + range_xmin)
+    #  x_max_range = (max_point["x"], max_point["x"] - range_xmax)
+    #  x_min_range = (min_point["x"], min_point["x"] + range_xmin)
 
     ## METHOD 2
-#     x_max_range = (max_point["x"],  (mid_point+range_xmax))
-#     x_min_range = (min_point["x"],  (mid_point-range_xmin))
+    #  x_max_range = (max_point["x"],  (mid_point+range_xmax))
+    #  x_min_range = (min_point["x"],  (mid_point-range_xmin))
 
     ## METHOD 3
     x_max_range = (max_point["x"],  (max_point["x"] - (max_point["x"]-mid_point)*0.5))
@@ -302,7 +306,7 @@ def main():
             # Process the chessboard
             print ("Chessboard corner processing...")
             corners = findVertices(json_data)
-            # print("corners:", corners)
+            print("corners:", corners)
             for point in corners:
                 # plt.scatter(point['x'], point['y'], color="red", s=10)
                 im_chessboard_corners = cv.circle(im, (int(point[0]), int(point[1])), 10, (0,255,255), -1)
@@ -327,6 +331,16 @@ def main():
             
 
         # Map Chess Piece
+        chess_board = np.array([
+            ["b", "b", "b", "b", "b", "b", "b", "b"],
+            ["b", "b", "b", "b", "b", "b", "b", "b"],
+            ["-", "-", "-", "-", "-", "-", "-", "-"],
+            ["-", "-", "-", "-", "-", "-", "-", "-"],
+            ["-", "-", "-", "-", "-", "-", "-", "-"],
+            ["-", "-", "-", "-", "-", "-", "-", "-"],
+            ["w", "w", "w", "w", "w", "w", "w", "w"],
+            ["w", "w", "w", "w", "w", "w", "w", "w"]
+            ])
         if chessboard_mapped and (time.time() - start_time > chesspiece_delay):
             print("Mapping chesspiece")
             start_time = time.time()
