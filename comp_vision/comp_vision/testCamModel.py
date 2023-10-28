@@ -4,8 +4,12 @@ import json
 from roboflow import Roboflow
 import matplotlib.pyplot as plt
 from shapely.geometry import LineString
+import time
+
+chesspiece_delay = 2 # in seconds
 
 chessboard_path = 'chessboard-ref.jpg'
+chessboard_mapped_path = 'chessboard-mapped.jpg'
 chesspiece_path = 'chesspiece-ref.jpg'
 
 class Trapezium:
@@ -56,7 +60,7 @@ class Trapezium:
                     # print("intersection: ", intersection)
                     if intersection.geom_type == 'Point':
                         self.intersection_points.append((intersection.x, intersection.y))
-                        im_chessboard = cv.circle(img, (int(intersection.x), int(intersection.y)), 2, (0,0,255), -1)
+                        im_chessboard = cv.circle(img, (int(intersection.x), int(intersection.y)), 5, (0,0,255), -1)
                         # plt.plot(intersection.x, intersection.y, 'ro')
 
         # for i in range(9):
@@ -66,7 +70,8 @@ class Trapezium:
         #     plt.plot([horz_coord1[i][0], horz_coord2[i][0]], [horz_coord1[i][1], horz_coord2[i][1]], 'g--')
 
         # plt.show()
-        cv.imshow("test", im_chessboard)  
+        cv.imshow("Boxes Mapped", im_chessboard)
+        cv.imwrite(chessboard_mapped_path, im_chessboard)
 
     def find_pos(self, x1, y1):
         sorted_intersection_points = np.array(sorted(self.intersection_points, key=lambda p: (p[1], p[0]))).reshape(9, 9, 2)
@@ -236,6 +241,7 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
     return intersect_pts
 
 def main():
+    start_time = time.time()
     # Load the Board segmentation model
     rf = Roboflow(api_key="NYOkOMoPHPLUgPpjUxvf")
     project = rf.workspace().project("chessboard-segmentation")
@@ -296,7 +302,7 @@ def main():
             # Process the chessboard
             print ("Chessboard corner processing...")
             corners = findVertices(json_data)
-            print("corners:", corners)  
+            # print("corners:", corners)
             for point in corners:
                 # plt.scatter(point['x'], point['y'], color="red", s=10)
                 im_chessboard_corners = cv.circle(im, (int(point[0]), int(point[1])), 10, (0,255,255), -1)
@@ -321,13 +327,38 @@ def main():
             
 
         # Map Chess Piece
-        if chessboard_mapped:
+        if chessboard_mapped and (time.time() - start_time > chesspiece_delay):
+            print("Mapping chesspiece")
+            start_time = time.time()
             cv.imwrite(chesspiece_path, frame)
             json_data2 = model2.predict(chesspiece_path).json()
             # json_str2 = json.dumps(json_data2, indent=4) # pretty json_data2
             # print (json_str2)
+            im_chesspiece = cv.imread(chesspiece_path)
+            im_chesspiece_on_chessboard = cv.imread(chessboard_mapped_path)
 
-            # segment_res = np.array(json_data['predictions'][0]['points'])
+
+            # Loop through all predictions
+            for prediction in json_data2['predictions']:
+                x = int(prediction['x'])
+                y = int(prediction['y'])
+                height = int(prediction['height'])
+                chess_class = prediction['class']
+                color = (0, 255, 0)  # Default to green for any unknown class
+                
+                # Determine the color of the circle based on the chess piece color
+                if 'white' in chess_class:
+                    color = (255, 255, 255)  # White for white pieces
+                elif 'black' in chess_class:
+                    color = (119,136,153)  # Black for black pieces
+
+                # Draw a circle around the chess piece
+                # Syntax: cv.circle(image, center_coordinates, radius, color, thickness)
+                im_chesspiece = cv.circle(im_chesspiece, (x, y+int(height/4)), 10, color, -1)
+                im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y+int(height/4)), 10, color, -1)
+            
+            cv.imshow("Chesspiece", im_chesspiece)
+            cv.imshow("Chesspiece2", im_chesspiece_on_chessboard)
 
         
 
