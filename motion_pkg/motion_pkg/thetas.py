@@ -71,3 +71,70 @@ else:
         print(thetas[i] * 1024 / 300, end=", ")
 
     print()
+
+'''
+def anglesProduce(position: str, yf):
+            R = 3
+            d = 1.5                         # Distance between robotic arm and chess board
+            side = 2.75
+
+            num = 1
+            hordict = {}
+
+            for i in "abcdefgh":
+                hordict[i] = num
+                num +=1
+
+            def findXf(pos):
+                ver = int(pos[1])
+                hor = hordict[pos[0]]
+                return (R + ((R + d + side*(ver - 1) + (side/2))**2 + (side*(hor - 5) + (side/2))**2)**(1/2))
+
+            def findYawRad(pos):
+                ver = int(pos[1])
+                hor = hordict[pos[0]]
+                return (math.atan((side*(hor - 5) + (side/2)) / (R + d + side*(ver - 1) + (side/2))))*(180/math.pi)+150
+
+            xf = findXf(position)
+            # yf = 0
+
+            l1 = 15.75
+            l2 = 13.25
+            l3 = 17.40
+            
+            k = (xf ** 2) + (yf ** 2) + (l1 ** 2) - (l2 ** 2) + (2 * yf * l3) + (l3 ** 2)
+            n = math.sqrt(((2 * xf * l1) ** 2) + ((2 * yf * l1 + 2 * l1 * l3) ** 2))
+
+            alphr = math.atan((2 * yf * l1 + 2 * l1 * l3) / (2 * xf * l1))
+            alphd = math.degrees(alphr)
+
+            thetas = []
+
+            theta11 = alphd + math.degrees(math.acos(k / n))
+            theta12 = alphd - math.degrees(math.acos(k / n))
+
+            theta21 = - theta11 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta11))) / l2)))
+            theta22 = - theta12 + math.degrees(math.acos(((xf - l1 * math.cos(math.radians(theta12))) / l2)))
+
+            theta31 = 270 - theta11 - theta21
+            theta32 = 270 - theta12 - theta22
+
+            thetas.extend([theta11, theta12, theta21, theta22, theta31, theta32])
+
+            for i in range(len(thetas)):
+                if thetas[i] < 0:
+                    thetas[i] = thetas[i] + 360
+                elif thetas[i] > 360:
+                    thetas[i] = thetas[i] - 360
+
+            for i in range(2, len(thetas)):
+                thetas[i] = thetas[i] - 120
+
+            thetas[0] = thetas[0] + 60
+            thetas[1] = thetas[1] + 60
+            thetas[2] = 300 - thetas[2]
+
+            for i in range(len(thetas)):
+                thetas[i] = thetas[i] * 1024 / 300;
+
+            return [findYawRad(position), thetas[0], thetas[2], thetas[4]]'''
