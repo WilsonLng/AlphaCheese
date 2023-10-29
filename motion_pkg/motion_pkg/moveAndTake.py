@@ -184,7 +184,7 @@ class pyNode(Node):
             'h6': [],
             'h7': [],
             'h8': [],
-            'default': [512,c(185),c(178),c(138),c(0)],
+            'default': [c(152.34), c(188.09), c(150.88), c(89.06), c(0.00), 512,c(185),c(178),c(138),c(0)],
             'out': [],
             'stretch': [512,c(155.86),c(54.20),c(250.78),c(0)],
             'test': [c(150), c(153.22), c(126.86), c(130.08), c(0)]
@@ -375,10 +375,12 @@ class pyNode(Node):
 
         desired_speed = 81
 
-        for servo_id, position in zip(servo_ids, [512,c(185),c(178),c(138),c(0)]):
+        for servo_id, position in zip(servo_ids[1:], [c(188.09), c(150.88), c(89.06), c(0.00)]):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, 81)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
             time.sleep(2)
+
+        time.sleep(5)
         # time.sleep(8)    
         # for servo_id in servo_ids:
         #     dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read2ByteTxRx(portHandler, servo_id, ADDR_PRESENT_POSITION)
