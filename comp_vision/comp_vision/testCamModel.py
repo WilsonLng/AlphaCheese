@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import LineString
 import time
 
-chesspiece_delay = 2 # in seconds
+chesspiece_delay = 0.5 # in seconds
 
 chessboard_path = 'chessboard-ref.jpg'
 chessboard_mapped_path = 'chessboard-mapped.jpg'
@@ -73,17 +73,25 @@ class Trapezium:
         cv.imshow("Boxes Mapped", im_chessboard)
         cv.imwrite(chessboard_mapped_path, im_chessboard)
 
-    def find_pos(self, x1, y1):
+    def find_pos(self, x1, y1, side_view=1):
         sorted_intersection_points = np.array(sorted(self.intersection_points, key=lambda p: (p[1], p[0]))).reshape(9, 9, 2)
         pos = np.zeros((8, 8), dtype=object)
-
+        
         # for i in range(8):
-        #     for j in range(8):
-        #         pos[7 - i, j] = chr(j + 97) + str(i + 1)
+        #         for j in range(8):
+        #             pos[7 - i, j] = chr(j + 97) + str(i + 1)
 
-        for i in range(8):
-            for j in range(8):
-                pos[i, j] = chr(104 - i) + str(j + 1)
+        if side_view:
+            # Generate the labels from h1 to a8
+            for i in range(8):
+                for j in range(8):
+                    pos[i, j] = chr(104 - i) + str(j + 1)
+        
+        else:
+            # Generate the labels from h8 to a1
+            for i in range(8): 
+                for j in range(8): 
+                    pos[i, j] = chr(104 - j) + str(8 - i)
 
         # print("pos: ", pos)
 
@@ -92,10 +100,12 @@ class Trapezium:
                 k = j
 
         if y1 < min(sorted_intersection_points[:, 0, 1]) or y1 > max(sorted_intersection_points[:, 0, 1]):
-            print("Coordinate outside the range of y")
+            # print("Coordinate outside the range of y")
+            return 0
         
         elif y1 in sorted_intersection_points[:, 0, 1]:
-            print("Chess piece is placed on the edge of the squares")
+            # print("Chess piece is placed on the edge of the squares")
+            return 0
         
         else:
             x_pot = []
@@ -109,11 +119,64 @@ class Trapezium:
                 if x1 > float(x_pot[p]) and x1 < float(x_pot[p + 1]):
                     h = p
             if x1 < min(x_pot) or x1 > max(x_pot):
-                print("Coorinate outside the range of x")
+                # print("Coordinate outside the range of x")
+                return 0
             elif x1 in x_pot:
-                print("Chess piece is placed on the edge of the squares")
+                # print("Chess piece is placed on the edge of the squares")
+                return 0
             else:
-                print('Chess piece position is:', pos[7-k,h])
+                # print('Chess piece position is:', pos[7-k,h])
+                return pos[7-k,h]
+
+def dict_to_board(chess_dict):
+    # Initialize an 8x8 numpy array with empty strings
+    chess_board = np.full((8, 8), "-", dtype=str)
+
+    # Loop through the dictionary to populate the array
+    for square, color in chess_dict.items():
+        # Convert the square in chess notation to row and column in the numpy array
+        col = ord(square[0]) - 97  # 'a' to 0, 'b' to 1, ..., 'h' to 7
+        row = 8 - int(square[1])  # '1' to 7, '2' to 6, ..., '8' to 0
+
+        # Convert the descriptive color to its shorthand ('w', 'b', or '-')
+        if color == "white":
+            value = 'w'
+        elif color == "black":
+            value = 'b'
+        else:
+            value = '-'
+
+        # Place the shorthand color value in the corresponding position on the board
+        chess_board[row, col] = value
+
+    return chess_board
+
+def board_to_dict(chess_board):
+    # Create an empty dictionary to hold the square-color mappings
+    chess_dict = {}
+    
+    # Rows correspond to the rank on the chess board (8 to 1)
+    for row in range(8):
+        # Columns correspond to the file on the chess board (a to h)
+        for col in range(8):
+            # Convert row and column to chess notation
+            square = f"{chr(97 + col)}{8 - row}"
+            
+            # Get the value from the numpy array
+            value = chess_board[row, col]
+            
+            # Convert the value to a descriptive word ("white", "black", or "empty")
+            if value == 'w':
+                color = "white"
+            elif value == 'b':
+                color = "black"
+            else:
+                color = "empty"
+            
+            # Add the square and its color to the dictionary
+            chess_dict[square] = color
+
+    return chess_dict
 
 def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, range_xmin=100):
     
@@ -246,6 +309,26 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
 
 def main():
     start_time = time.time()
+    side_view = False
+    chesspiece_iteration = 0
+    cam_dict = {}
+
+    # Initialize board position
+    chess_board = np.array([
+    ["b", "b", "b", "b", "b", "b", "b", "b"],
+    ["b", "b", "b", "b", "b", "b", "b", "b"],
+    ["-", "-", "-", "-", "-", "-", "-", "-"],
+    ["-", "-", "-", "-", "-", "-", "-", "-"],
+    ["-", "-", "-", "-", "-", "-", "-", "-"],
+    ["-", "-", "-", "-", "-", "-", "-", "-"],
+    ["w", "w", "w", "w", "w", "w", "w", "w"],
+    ["w", "w", "w", "w", "w", "w", "w", "w"]
+    ])  
+    chess_dict = board_to_dict(chess_board)
+
+    # Initialize opponent_move as True
+    opponent_move = True
+
     # Load the Board segmentation model
     rf = Roboflow(api_key="NYOkOMoPHPLUgPpjUxvf")
     project = rf.workspace().project("chessboard-segmentation")
@@ -305,7 +388,13 @@ def main():
 
             # Process the chessboard
             print ("Chessboard corner processing...")
-            corners = findVertices(json_data)
+
+            if side_view:
+                corners = findVertices(json_data)
+            else:
+                corners = findVertices(json_data)
+                corners[1][0] = corners[1][0] + 7 # offset due to model not properly segmented the bottom right
+                corners[2][1] = corners[2][1] + 2 # offset due to model not properly segmented the top right
             print("corners:", corners)
             for point in corners:
                 # plt.scatter(point['x'], point['y'], color="red", s=10)
@@ -316,32 +405,30 @@ def main():
 
             # Each boxes
             trapezium_x = [corners[i][0] for i in [3, 2, 1, 0, 3]]
-            # trapezium_y = [corner[1] for corner in corners]
-            # y_coord = np.linspace((corners[2][1]+corners[3][1])/2, (corners[0][1]+corners[1][1])/2, 9)
+            
             min_y = (corners[2][1] + corners[3][1]) / 2
             max_y = (corners[0][1] + corners[1][1]) / 2
-            k = [0.5/6, 0.5/6, 0.65/6, 0.7/6, 0.7/6, 0.85/6, 1/6, 1.1/6]
+
+            k_side_view = [0.5/6, 0.5/6, 0.65/6, 0.7/6, 0.7/6, 0.85/6, 1/6, 1.1/6]
+            k_top_view = [0.65/6.3, 0.7/6.3, 0.75/6.3, 0.8/6.3, 0.85/6.3, 0.85/6.3, 0.9/6.3, 0.9/6.3]
 
             y_coord = [max_y]
-            for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
-                y_coord.append(y_coord[-1] - (max_y - min_y) *k[i])
+            
+            if side_view:
+                for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
+                    y_coord.append(y_coord[-1] - (max_y - min_y) * k_side_view[i])
+            else:
+                # y_coord = np.linspace((corners[2][1]+corners[3][1])/2, (corners[0][1]+corners[1][1])/2, 9)
+                for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
+                    y_coord.append(y_coord[-1] - (max_y - min_y) * k_top_view[i])
             
             trapezium = Trapezium(trapezium_x, y_coord, chessboard_path)
             trapezium.plot_graph()
             
-
         # Map Chess Piece
-        chess_board = np.array([
-            ["b", "b", "b", "b", "b", "b", "b", "b"],
-            ["b", "b", "b", "b", "b", "b", "b", "b"],
-            ["-", "-", "-", "-", "-", "-", "-", "-"],
-            ["-", "-", "-", "-", "-", "-", "-", "-"],
-            ["-", "-", "-", "-", "-", "-", "-", "-"],
-            ["-", "-", "-", "-", "-", "-", "-", "-"],
-            ["w", "w", "w", "w", "w", "w", "w", "w"],
-            ["w", "w", "w", "w", "w", "w", "w", "w"]
-            ])
-        if chessboard_mapped and (time.time() - start_time > chesspiece_delay):
+        if chessboard_mapped and (time.time() - start_time > chesspiece_delay) and chesspiece_iteration < 5:
+            chesspiece_iteration += 1
+            print(f"{chesspiece_iteration}th chesspiece iteration")
             print("Mapping chesspiece")
             start_time = time.time()
             cv.imwrite(chesspiece_path, frame)
@@ -350,7 +437,6 @@ def main():
             # print (json_str2)
             im_chesspiece = cv.imread(chesspiece_path)
             im_chesspiece_on_chessboard = cv.imread(chessboard_mapped_path)
-
 
             # Loop through all predictions
             for prediction in json_data2['predictions']:
@@ -362,19 +448,65 @@ def main():
                 
                 # Determine the color of the circle based on the chess piece color
                 if 'white' in chess_class:
+                    chess_class = 'white'
                     color = (255, 255, 255)  # White for white pieces
                 elif 'black' in chess_class:
-                    color = (119,136,153)  # Black for black pieces
+                    chess_class = 'black'
+                    color = (119,136,153)  # Black (LightSlateGray) for black pieces
+                    continue
 
                 # Draw a circle around the chess piece
                 # Syntax: cv.circle(image, center_coordinates, radius, color, thickness)
-                im_chesspiece = cv.circle(im_chesspiece, (x, y+int(height/4)), 10, color, -1)
-                im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y+int(height/4)), 10, color, -1)
+                if side_view:
+                    im_chesspiece = cv.circle(im_chesspiece, (x, y+int(height/4)), 10, color, -1)
+                    im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y+int(height/4)), 10, color, -1)
+                    temp = f'{trapezium.find_pos(x, y+int(height/2), side_view)}'
+                else:
+                    im_chesspiece = cv.circle(im_chesspiece, (x, y), 10, color, -1)
+                    im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y), 10, color, -1)
+                    temp = f'{trapezium.find_pos(x, y, side_view)}'
+                
+                if temp != '0' and chess_class != 'black':
+                    cam_dict[temp]=chess_class
             
             cv.imshow("Chesspiece", im_chesspiece)
             cv.imshow("Chesspiece2", im_chesspiece_on_chessboard)
+            
 
-        
+            # compare cam_dict with chess_dict
+            if chesspiece_iteration == 5:
+                print("cam_dict: \n", dict_to_board(cam_dict))
+                print("chess_board: \n", chess_board)
+                # print("chess_dict: \n", json.dumps(chess_dict, indent=4))
+                for key, value in cam_dict.items():
+                    if key in chess_dict:
+                        if chess_dict[key] != value:
+                            opponent_move = False
+                            
+                            ## METHOD 1
+                            # # Capture a frame and subtract to see a difference
+                            # for i in range (5):
+                            #     ret, frame = cap.read()
+                            #     im = cv.imread(chessboard_path)
+                            #     cv.imshow("difference", frame-im)
+                            #     cv.imwrite("difference.jpg", frame-im)
+                            #     # if (detect_movement(frame, im)):
+                            #     #     print("Opponent movement detected")
+                            
+                            ## METHOD 2
+                            # Compare the chess in chess_dict with cam_dict
+                            for key2, value2 in chess_dict.items():
+                                if 'white' in value2 and key2 not in cam_dict:
+                                        chess_dict[key2] = 'empty'
+                                        chess_dict[key] = value
+                                        break
+                            
+                            chess_board = dict_to_board(chess_dict)
+                            print(chess_board)
+                            break
+                        
+                chesspiece_iteration = 0
+                cam_dict = {}
 
         # Display the resulting frame
         cv.imshow('frame', frame)
