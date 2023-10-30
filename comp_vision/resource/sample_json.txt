@@ -1,0 +1,60 @@
+Detection Model (chesspiece)
+{
+    "predictions": [
+        {
+            "x": 235.5,
+            "y": 312.0,
+            "width": 101.0,
+            "height": 130.0,
+            "confidence": 0.8827725648880005,
+            "class": "white-rook",
+            "class_id": 11,
+            "image_path": "chesspiece-ref.jpg",
+            "prediction_type": "ObjectDetectionModel"
+        },
+        {
+            ...
+        },
+    ],
+    "image": {
+        "width": "640",
+        "height": "480"
+    }
+}
+
+
+
+
+Segmentation json (chessboard)
+{
+    "predictions": [
+        {
+          "x": 321.5,
+          "y": 193,
+          "width": 467,
+          "height": 246,
+          "confidence": 0.938,
+          "class": "0",
+          "points": [
+                {
+                    "x": 174,
+                    "y": 70.313
+                },
+                {
+                    ...
+                },
+                {
+                    "x": 107.0,
+                    "y": 117.75
+                }
+            ],
+            "class_id": 0,
+            "image_path": "chessboard-ref.jpg",
+            "prediction_type": "InstanceSegmentationModel"
+        }
+    ],
+    "image": {
+        "width": "640",
+        "height": "480"
+    }
+}
