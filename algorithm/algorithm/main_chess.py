@@ -1,6 +1,7 @@
 import chess
 import stockfish
 import numpy as np
+import os
 
 
 def fen_to_position(fen_num):
@@ -135,7 +136,8 @@ def no_chesspieces(fen):
 if __name__ == "__main__":
 
     # 0. Initialisation
-    stockfish_path = "C:\\Users\\Nikodem Jan Dudek\\OneDrive\\Documents\\Robotics\\Group project\\Downloaded\\stockfish\\stockfish-windows-x86-64-avx2.exe"
+    # stockfish_path = "C:\\Users\\Nikodem Jan Dudek\\OneDrive\\Documents\\Robotics\\Group project\\Downloaded\\stockfish\\stockfish-windows-x86-64-avx2.exe"
+    stockfish_path = "/home/steven/stockfish/stockfish-ubuntu-x86-64-avx2"
     stockfish = stockfish.Stockfish(stockfish_path)
     stockfish.set_depth(20)
     stockfish.set_skill_level(10)
