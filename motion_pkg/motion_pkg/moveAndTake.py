@@ -146,7 +146,7 @@ class pyNode(Node):
             'c1': [c(145.02), c(122.46), c(71.48), c(146.48), c(166.41), c(145.02), c(106.05), c(70.02), c(135.94), c(166.41)],
             'd8': [c(141.21), c(172.27), c(179.88), c(159.96), c(166.41), c(141.21), c(165.53), c(179.30), c(162.60), c(166.41)],
             'd7': [c(144.43), c(171.68), c(150.59), c(150.29), c(166.41), c(144.43), c(158.79), c(180.47), c(185.45), c(166.41)],
-            'd6': [c(144.14), c(165.53), c(157.62), c(162.60), c(166.41), c(144.14), c(152.34), c(163.18), c(173.44), c(166.41)],
+            'd6': [c(144.14), c(165.53), c(157.62), c(162.60), c(166.41), c(144.14), c(152.34), c(163.18), c(177.00), c(166.41)],
             'd5': [c(149.41), c(141.80), c(131.84), c(153.52), c(166.41), c(149.41), c(143.26), c(150.59), c(171.97), c(166.41)],
             'd4': [c(149.71), c(142.09), c(125.68), c(153.81), c(166.41), c(149.71), c(144.43), c(142.09), c(170.80), c(166.41)],
             'd3': [c(150.29), c(126.56), c(91.11), c(136.23), c(166.41), c(150.29), c(132.71), c(122.17), c(160.84), c(166.41)],
@@ -191,7 +191,7 @@ class pyNode(Node):
         }
 
         close = 133.47
-        open = 166.70
+        open = 175.00
 
         def moveToBeforeWithout(loc: str, speed=64):
             servo_ids = [1, 2, 3, 4]
@@ -199,7 +199,8 @@ class pyNode(Node):
                 print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-                time.sleep(1)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
+                time.sleep(2)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
             time.sleep(1)
 
@@ -209,7 +210,8 @@ class pyNode(Node):
                 print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-                time.sleep(1)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
+                time.sleep(2)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
             time.sleep(1)
 
@@ -221,7 +223,8 @@ class pyNode(Node):
                 print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-                time.sleep(1)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
+                time.sleep(2)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
             time.sleep(1)
 
@@ -233,9 +236,24 @@ class pyNode(Node):
                 print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-                time.sleep(1)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
+                time.sleep(2)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
             time.sleep(1)
+
+        def moveOut(speed=64):
+            servo_ids = [1, 2, 3, 4]
+            for servo_id, position in zip(servo_ids, chessPositions['out'][:4]):
+                print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
+                time.sleep(2)
+            dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
+            time.sleep(1)
+
+        def moveToDefault(speed=64):
+            print("Hello World!")
         
         # servo_ids = [1, 2, 3, 4, 5]
 
@@ -262,39 +280,66 @@ class pyNode(Node):
         # e7: [c(161.43), c(171.68), c(163.48), c(154.39), c(45), c(159.08), c(166.11), c(183.98), c(186.04), c(45)]
         # e5: [c(158.50), c(155.57), c(142.09), c(156.15), c(45), c(158.20), c(150.29), c(160.55), c(179.00), c(45)]
 
-        moveToBeforeWithout("e7")
+        received = data.location.split()
 
-        time.sleep(5)
+
+        if received[2] == "m" or received[2] == "=m":
+            moveToBeforeWithout(received[0])
+            moveToAfterWithout(received[0])
+            moveToBeforeWith(received[0])
+            moveToBeforeWith(received[1])
+            moveToAfterWith(received[1])
+            moveToBeforeWithout(received[1])
+            moveToDefault()
+        elif received[2] == "x" or received[2] == "=x":
+            moveToBeforeWithout(received[1])
+            moveToAfterWithout(received[1])
+            moveToBeforeWith(received[1])
+            moveOut()
+            moveToBeforeWithout(received[0])
+            moveToAfterWithout(received[0])
+            moveToBeforeWithout(received[0])
+            moveToBeforeWith(received[1])
+            moveToAfterWith(received[1])
+            moveToBeforeWithout(received[1])
+            moveToDefault()
+        else:
+            print("Error!")
+
+        # moveToBeforeWithout("e7")
+
+        # time.sleep(5)
         
-        moveToAfterWithout("e7")
+        # moveToAfterWithout("e7")
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        moveToBeforeWith("e7")
+        # moveToBeforeWith("e7")
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        moveToBeforeWith("e5")
+        # moveToBeforeWith("e5")
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        moveToAfterWith("e5")
+        # moveToAfterWith("e5")
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        moveToBeforeWithout("e5")
+        # moveToBeforeWithout("e5")
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        moveToAfterWithout("e5")
+        # moveToAfterWithout("e5")
 
-        time.sleep(5)
+        # time.sleep(5)
         
-        moveToBeforeWith("e5")
+        # moveToBeforeWith("e5")
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        moveToAfterWith("e5")
+        # moveToAfterWith("e5")
+        ######################################
 
         # time.sleep(3)
 
