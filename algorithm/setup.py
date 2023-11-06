@@ -20,6 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "main_chess = algorithm.main_chess:main",
+            "publisher = algorithm.publisher:main",
+            "subscriber = algorithm.subscriber:main",
+            "chessAlgo = algorithm.chessAlgo:main",
         ],
     },
 )

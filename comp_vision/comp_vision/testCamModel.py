@@ -5,12 +5,28 @@ from roboflow import Roboflow
 import matplotlib.pyplot as plt
 from shapely.geometry import LineString
 import time
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
 
 chesspiece_delay = 0.5 # in seconds
 
 chessboard_path = 'chessboard-ref.jpg'
 chessboard_mapped_path = 'chessboard-mapped.jpg'
 chesspiece_path = 'chesspiece-ref.jpg'
+
+class ChessBoardPublisher(Node):
+    def __init__(self):
+        super().__init__('chessboard_publisher')
+        self.publisher_ = self.create_publisher(String, 'chessboard_state', 10)
+
+    def publish_board(self, chess_board):
+        msg = String()
+        # Convert the numpy array to a JSON string for publishing
+        msg.data = json.dumps(chess_board.tolist())
+        self.publisher_.publish(msg)
+        self.get_logger().info('Publishing: "\n%s"' % msg.data)
+
 
 class Trapezium:
     def __init__(self, trapezium_x, y_coord, image_path):
@@ -307,27 +323,41 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
     
     return intersect_pts
 
-def main():
+def main(args=None):
     start_time = time.time()
     side_view = False
     chesspiece_iteration = 0
     cam_dict = {}
 
     # Initialize board position
+    # chess_board = np.array([
+    # ["b", "b", "b", "b", "b", "b", "b", "b"],
+    # ["b", "b", "b", "b", "b", "b", "b", "b"],
+    # ["-", "-", "-", "-", "-", "-", "-", "-"],
+    # ["-", "-", "-", "-", "-", "-", "-", "-"],
+    # ["-", "-", "-", "-", "-", "-", "-", "-"],
+    # ["-", "-", "-", "-", "-", "-", "-", "-"],
+    # ["w", "w", "w", "w", "w", "w", "w", "w"],
+    # ["w", "w", "w", "w", "w", "w", "w", "w"]
+    # ])
+
     chess_board = np.array([
-    ["b", "b", "b", "b", "b", "b", "b", "b"],
-    ["b", "b", "b", "b", "b", "b", "b", "b"],
+    ["-", "-", "-", "-", "-", "-", "-", "-"],
+    ["-", "-", "-", "-", "-", "-", "-", "-"],
     ["-", "-", "-", "-", "-", "-", "-", "-"],
     ["-", "-", "-", "-", "-", "-", "-", "-"],
     ["-", "-", "-", "-", "-", "-", "-", "-"],
     ["-", "-", "-", "-", "-", "-", "-", "-"],
     ["w", "w", "w", "w", "w", "w", "w", "w"],
     ["w", "w", "w", "w", "w", "w", "w", "w"]
-    ])  
+    ])
     chess_dict = board_to_dict(chess_board)
 
     # Initialize opponent_move as True
-    opponent_move = True
+    # opponent_move = True
+
+    rclpy.init(args=args)
+    chessboard_publisher = ChessBoardPublisher()
 
     # Load the Board segmentation model
     rf = Roboflow(api_key="NYOkOMoPHPLUgPpjUxvf")
@@ -340,7 +370,7 @@ def main():
     project2 = rf.workspace().project("chess-pieces-2-etbrl")
     model2 = project2.version(1).model
     print("Done loading project of chess-piece weights")
-
+    
     cap = cv.VideoCapture(0)
 
     if not cap.isOpened():
@@ -481,7 +511,7 @@ def main():
                 for key, value in cam_dict.items():
                     if key in chess_dict:
                         if chess_dict[key] != value:
-                            opponent_move = False
+                            # opponent_move = False
                             
                             ## METHOD 1
                             # # Capture a frame and subtract to see a difference
@@ -507,6 +537,7 @@ def main():
                         
                 chesspiece_iteration = 0
                 cam_dict = {}
+                chessboard_publisher.publish_board(chess_board)
 
         # Display the resulting frame
         cv.imshow('frame', frame)
@@ -517,6 +548,9 @@ def main():
     # When everything done, release the capture
     cap.release()
     cv.destroyAllWindows()
+
+    chessboard_publisher.destroy_node()
+    rclpy.shutdown()
 
 # Run the main function
 if __name__ == "__main__":
