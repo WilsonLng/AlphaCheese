@@ -220,20 +220,6 @@ class pyNode(Node):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_GOAL_POSITION, int(positions[3]))
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
 
-            # servo_ids = [2, 3, 4]
-            # for servo_id, position in zip(servo_ids, chessPositions[loc][1:4]):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
-
-            # servo_ids = [1, 2, 3, 4]
-            # for servo_id, position in zip(servo_ids, chessPositions[loc][:4]):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
-                # time.sleep(1)
             time.sleep(3)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_MOVING_SPEED, 59)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
@@ -265,20 +251,6 @@ class pyNode(Node):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_GOAL_POSITION, int(positions[3]))
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
 
-            # servo_ids = [2, 3, 4]
-            # for servo_id, position in zip(servo_ids, chessPositions[loc][1:4]):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-
-            # servo_ids = [1, 2, 3, 4]
-            # for servo_id, position in zip(servo_ids, chessPositions[loc][:4]):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-                # time.sleep(1)
             time.sleep(3)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_MOVING_SPEED, 59)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
@@ -289,49 +261,6 @@ class pyNode(Node):
             chess_position_reverse = chessPositions[loc][5:-1].copy()
             chess_position_reverse.reverse()
 
-            # positions = chessPositions[loc].copy()
-
-            # second_start = positions[1]
-            # second_end = positions[6]
-            # step = (second_end - second_start) / 3
-            # second = [second_start + i * step for i in range(4)]
-
-            # third_start = positions[2]
-            # third_end = positions[7]
-            # step = (third_end - third_start) / 3
-            # third = [third_start + i * step for i in range(4)]
-
-            # fourth_start = positions[3]
-            # fourth_end = positions[8]
-            # step = (fourth_end - fourth_start) / 3
-            # fourth = [fourth_start + i * step for i in range(4)]
-
-            # transition1, transition2, transition3, transition4 = zip(second, third, fourth)
-
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_MOVING_SPEED, speed)
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_GOAL_POSITION, int(positions[0]))
-
-            # servo_id_new = [2, 3, 4]
-
-            # for servo_id, position in zip(servo_id_new, transition1):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
-
-            # for servo_id, position in zip(servo_id_new, transition2):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
- 
-            # for servo_id, position in zip(servo_id_new, transition3):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
- 
-            # for servo_id, position in zip(servo_id_new, transition4):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
             servo_id_reverse_test = [4, 3, 2]
             chess_position_reverse_test = chessPositions[loc][6:-1].copy()
             chess_position_reverse_test.reverse()
@@ -363,18 +292,6 @@ class pyNode(Node):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_GOAL_POSITION, int(positions[8]))
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
 
-            # for servo_id, position in zip(servo_id_reverse_test, chess_position_reverse_test):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
-
-            # for servo_id, position in zip(servo_id_reverse, chess_position_reverse):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
-                # time.sleep(1)
             time.sleep(3)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_MOVING_SPEED, 59)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
@@ -385,63 +302,6 @@ class pyNode(Node):
             chess_position_reverse = chessPositions[loc][5:-1].copy()
             chess_position_reverse.reverse()
 
-            # --------------------------------------------
-
-            # positions = chessPositions[loc].copy()
-
-            # second_difference = abs(positions[6] - positions[1])
-            # third_difference = abs(positions[7] - positions[2])
-            # fourth_difference = abs(positions[8] - positions[3])
-
-            # order = [second_difference, third_difference, fourth_difference]
-            # order_motor = []
-
-            # --------------------------------------------
-
-            # positions = chessPositions[loc].copy()
-
-            # second_start = positions[1]
-            # second_end = positions[6]
-            # step = (second_end - second_start) / 3
-            # second = [second_start + i * step for i in range(4)]
-
-            # third_start = positions[2]
-            # third_end = positions[7]
-            # step = (third_end - third_start) / 3
-            # third = [third_start + i * step for i in range(4)]
-
-            # fourth_start = positions[3]
-            # fourth_end = positions[8]
-            # step = (fourth_end - fourth_start) / 3
-            # fourth = [fourth_start + i * step for i in range(4)]
-
-            # transition1, transition2, transition3, transition4 = zip(second, third, fourth)
-
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_MOVING_SPEED, speed)
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_GOAL_POSITION, int(positions[0]))
-
-            # servo_id_new = [2, 3, 4]
-
-            # for servo_id, position in zip(servo_id_new, transition1):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-
-            # for servo_id, position in zip(servo_id_new, transition2):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-  
-            # for servo_id, position in zip(servo_id_new, transition3):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-   
-            # for servo_id, position in zip(servo_id_new, transition4):
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-
             servo_id_reverse_test = [4, 3, 2]
             chess_position_reverse_test = chessPositions[loc][6:-1].copy()
             chess_position_reverse_test.reverse()
@@ -474,19 +334,6 @@ class pyNode(Node):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_GOAL_POSITION, int(positions[8]))
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
 
-            # for servo_id, position in zip(servo_id_reverse_test, chess_position_reverse_test):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-
-     
-            # for servo_id, position in zip(servo_id_reverse, chess_position_reverse):
-            #     print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-            #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
-                # time.sleep(1)
             time.sleep(3)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_MOVING_SPEED, 59)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
@@ -543,30 +390,7 @@ class pyNode(Node):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
             time.sleep(5)
         
-        # servo_ids = [1, 2, 3, 4, 5]
-
         desired_speed = 81
-
-        # for servo_id, position in zip(servo_ids[1:], [(188.09), c(150.88), c(89.06), c(0.00)]):
-        #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, 81)
-        #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-        #     time.sleep(2)
-
-        time.sleep(5)
-        # time.sleep(8)    
-        # for servo_id in servo_ids:
-        #     dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read2ByteTxRx(portHandler, servo_id, ADDR_PRESENT_POSITION)
-        #     # print("Present Position of ID %s = %s %s" % (servo_id, dxl_present_position, dxl_present_position * 300 / 1023))
-
-        # print("after default")
-
-        # stretch()
-
-        # autoMoveAndOffset("h1")
-
-
-        # e7: [c(161.43), c(171.68), c(163.48), c(154.39), c(45), c(159.08), c(166.11), c(183.98), c(186.04), c(45)]
-        # e5: [c(158.50), c(155.57), c(142.09), c(156.15), c(45), c(158.20), c(150.29), c(160.55), c(179.00), c(45)]
 
         received = data.location.split()
 
@@ -600,70 +424,6 @@ class pyNode(Node):
             moveToBeforeWith(received[1])
         else:
             print("Error!")
-
-        # moveToBeforeWithout("e7")
-
-        # time.sleep(5)
-        
-        # moveToAfterWithout("e7")
-
-        # time.sleep(5)
-
-        # moveToBeforeWith("e7")
-
-        # time.sleep(5)
-
-        # moveToBeforeWith("e5")
-
-        # time.sleep(5)
-
-        # moveToAfterWith("e5")
-
-        # time.sleep(5)
-
-        # moveToBeforeWithout("e5")
-
-        # time.sleep(5)
-
-        # moveToAfterWithout("e5")
-
-        # time.sleep(5)
-        
-        # moveToBeforeWith("e5")
-
-        # time.sleep(5)
-
-        # moveToAfterWith("e5")
-        ######################################
-
-        # time.sleep(3)
-
-        # time.sleep(2)
-
-        # for servo_id, position in zip(servo_ids, chessPosition['a8'][5:]):
-        #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
-        #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, 81)
-        #     dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-        #     # for i in range(int(position)):
-        #     #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
-        #     #     time.sleep(0.5)
-
-        # time.sleep(5)
-
-        # for servo_id, position in zip(servo_ids, chessPosition['a8'][:5]):
-        #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
-        #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-        #     # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, desired_speed)
-        #     # for i in range(int(position)):
-        #     #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(i))
-        #     #     time.sleep(0.5)
-
-        # time.sleep(5)
-
-        # servos_default = [512, 512, 512, 512, openGripper]
-        # for servo_id, position in zip(servo_ids, servos_default):
-        #     print("Set Goal Position of ID %s = %s" % (servo_id, int(position)))
-        #     dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
 
     def get_present_pos(self, req, res):
         res.positions = []
