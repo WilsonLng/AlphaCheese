@@ -1,37 +1,47 @@
 import rclpy
 from rclpy.node import Node
+from example_interfaces.msg import String
+import random
 
-from std_msgs.msg import String
 
-
-class MinimalPublisher(Node):
-
+class array_publisher_node(Node):
     def __init__(self):
-        super().__init__('minimal_publisher')
-        self.publisher_ = self.create_publisher(String, 'topic', 10)
-        timer_period = 0.5  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
+        super().__init__("array_publish")
+        self.array_publisher = self.create_publisher(str, "array", 10)
+        timer_period = 0.5
+        self.timer = self.create_timer(timer_period,self.publish_array)
 
-    def timer_callback(self):
+    
+    def publish_array(self):
+        array = generate_random_array()
         msg = String()
-        msg.data = 'Hello World: %d' % self.i
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
-        self.i += 1
+        msg.data = array
+        self.array_publisher.publish(msg)
 
+
+def generate_random_array():
+    array = [['-' for _ in range(8)] for _ in range(8)]
+
+    for _ in range(16):
+        while True:
+            x, y = random.randint(0, 7), random.randint(0, 7)
+            if array[x][y] == '-':
+                array[x][y] = 'b'
+                break
+
+    for _ in range(16):
+        while True:
+            x, y = random.randint(0, 7), random.randint(0, 7)
+            if array[x][y] == '-':
+                array[x][y] = 'w'
+                break
+
+    print(array)
 
 def main(args=None):
     rclpy.init(args=args)
-    minimal_publisher = MinimalPublisher()
-    rclpy.spin(minimal_publisher)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    minimal_publisher.destroy_node()
+    node = array_publisher_node()
+    rclpy.spin(node)
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
