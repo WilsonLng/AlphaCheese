@@ -165,7 +165,7 @@ if __name__ == "__main__":
         
         # 2. White plays.
 
-        #positionwbe_2 = vision_to_positionwbe()
+        # positionwbe_2 = vision_to_positionwbe()
         positionwbe_2 = np.array([
             ["b", "b", "b", "b", "b", "b", "b", "b"],
             ["b", "b", "b", "b", "b", "b", "b", "b"],
@@ -221,22 +221,22 @@ if __name__ == "__main__":
         
         if((position_2[index_fig1][0] == "-") and (len(suggested_move) == 4)):
             # 3a. Black executed a move of a figure.
-            print("Input to the robotic arm: ", suggested_move[0:2] + " " + suggested_move[2:4])
+            print("Input to the robotic arm: ", suggested_move[0:2] + " " + suggested_move[2:4] + " m")
             position_3[index_fig1] = position_2[index_fig0][0]
 
         elif((position_2[index_fig1][0] != "-") and (len(suggested_move) == 4)):
             # 3b. Black executed a capture.
-            print("Input to the robotic arm: ", suggested_move[0:2] + "x" + suggested_move[2:4])
+            print("Input to the robotic arm: ", suggested_move[0:2] + " " + suggested_move[2:4] + " x")
             position_3[index_fig1] = position_2[index_fig0][0]
 
         elif((position_2[index_fig1][0] == "-") and (len(suggested_move) == 5)):
             # 3c. Black executed a move of a figure with promotion
-            print("Input to the robotic arm: ", suggested_move[0:2] + " " + suggested_move[2:4] + "=" + suggested_move[4])
+            print("Input to the robotic arm: ", suggested_move[0:2] + " " + suggested_move[2:4] + " =m" + suggested_move[4])
             position_3[index_fig1] = suggested_move[4]
 
         elif((position_2[index_fig1][0] != "-") and (len(suggested_move) == 5)):
             # 3d. Black executed a capture with promotion
-            print("Input to the robotic arm: ", suggested_move[0:2] + "x" + suggested_move[2:4] + "=" + suggested_move[4])
+            print("Input to the robotic arm: ", suggested_move[0:2] + " " + suggested_move[2:4] + " =x" + suggested_move[4])
             position_3[index_fig1] = suggested_move[4]
 
         else:
