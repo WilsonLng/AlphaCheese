@@ -340,252 +340,6 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
     
     return intersect_pts
 
-def main(args=None):
-    rclpy.init(args=args)
-    
-    turn_listener = TurnListener()  # Instantiate the listener for the turn
-    chessboard_publisher = ChessBoardPublisher()  # Instantiate your chessboard publisher
-
-    start_time = time.time()
-    side_view = False
-    chesspiece_iteration = 0
-    cam_dict = {}
-
-    # Initialize board position
-    # chess_board = np.array([
-    # ["b", "b", "b", "b", "b", "b", "b", "b"],
-    # ["b", "b", "b", "b", "b", "b", "b", "b"],
-    # ["-", "-", "-", "-", "-", "-", "-", "-"],
-    # ["-", "-", "-", "-", "-", "-", "-", "-"],
-    # ["-", "-", "-", "-", "-", "-", "-", "-"],
-    # ["-", "-", "-", "-", "-", "-", "-", "-"],
-    # ["w", "w", "w", "w", "w", "w", "w", "w"],
-    # ["w", "w", "w", "w", "w", "w", "w", "w"]
-    # ])
-
-    chess_board = np.array([
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["w", "w", "w", "w", "w", "w", "w", "w"],
-    ["w", "w", "w", "w", "w", "w", "w", "w"]
-    ])
-    chess_dict = board_to_dict(chess_board)
-
-    rclpy.init(args=args)
-    chessboard_publisher = ChessBoardPublisher()
-
-    # Load the Board segmentation model
-    rf = Roboflow(api_key="NYOkOMoPHPLUgPpjUxvf")
-    project = rf.workspace().project("chessboard-segmentation")
-    model = project.version(1).model
-    chessboard_mapped = 0
-    print("Done loading project of chessboard weights")
-
-    # Load the chess piece detection model
-    project2 = rf.workspace().project("chess-pieces-2-etbrl")
-    model2 = project2.version(1).model
-    print("Done loading project of chess-piece weights")
-    
-    cap = cv.VideoCapture(0)
-
-    if not cap.isOpened():
-        print("Cannot open camera")
-        exit()
-
-    # As long as rclpy is not shutdown, continue running the loop
-    while rclpy.ok():
-        rclpy.spin_once(turn_listener, timeout_sec=0)  # Non-blocking
-        print("turn_listener.white_is_playing: ", turn_listener.white_is_playing)
-        if turn_listener.white_is_playing:
-            # Capture frame-by-frame
-            ret, frame = cap.read()
-
-            # If frame is read correctly, ret is True
-            if not ret:
-                print("Can't receive frame (stream end?). Exiting ...")
-                break
-
-            # Image Processing
-            # Map chessboard -- only once
-            if not chessboard_mapped:
-
-                cv.imwrite(chessboard_path, frame)
-                json_data = model.predict(chessboard_path).json()
-                # json_str = json.dumps(json_data, indent=4) # pretty json_data
-                # print (json_str)
-
-                im = cv.imread(chessboard_path)
-                # cv.imshow("chessboard", im)  
-                # implot = plt.imshow(im)
-                # plt.imshow(im)
-                
-                if len(json_data['predictions']) > 0:
-                    print ("Chessboard detected")
-                    segment_res = np.array(json_data['predictions'][0]['points'])
-                    
-                    # Display points
-                    for point in segment_res:
-                        # plt.scatter(point['x'], point['y'], color="red", s=10)
-                        im_chessboard = cv.circle(im, (int(point['x']), int(point['y'])), 2, (0,0,255), -1)
-                    # plt.show()
-                    # cv.imshow("chessboard boundary", im_chessboard)  
-
-                    chessboard_mapped = 1
-                    print ("Chessboard segmented")
-                else:
-                    print ("Chessboard not detected")
-
-                # Process the chessboard
-                print ("Chessboard corner processing...")
-
-                if side_view:
-                    corners = findVertices(json_data)
-                else:
-                    corners = findVertices(json_data)
-                    corners[1][0] = corners[1][0] + 7 # offset due to model not properly segmented the bottom right
-                    corners[2][1] = corners[2][1] + 2 # offset due to model not properly segmented the top right
-                print("corners:", corners)
-                for point in corners:
-                    # plt.scatter(point['x'], point['y'], color="red", s=10)
-                    im_chessboard_corners = cv.circle(im, (int(point[0]), int(point[1])), 10, (0,255,255), -1)
-                # plt.show()
-                cv.imshow("chessboard corners", im_chessboard_corners)
-                print ("Chessboard corners plotted")
-
-                # Each boxes
-                trapezium_x = [corners[i][0] for i in [3, 2, 1, 0, 3]]
-                
-                min_y = (corners[2][1] + corners[3][1]) / 2
-                max_y = (corners[0][1] + corners[1][1]) / 2
-
-                k_side_view = [0.5/6, 0.5/6, 0.65/6, 0.7/6, 0.7/6, 0.85/6, 1/6, 1.1/6]
-                k_top_view = [0.65/6.3, 0.7/6.3, 0.75/6.3, 0.8/6.3, 0.85/6.3, 0.85/6.3, 0.9/6.3, 0.9/6.3]
-
-                y_coord = [max_y]
-                
-                if side_view:
-                    for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
-                        y_coord.append(y_coord[-1] - (max_y - min_y) * k_side_view[i])
-                else:
-                    # y_coord = np.linspace((corners[2][1]+corners[3][1])/2, (corners[0][1]+corners[1][1])/2, 9)
-                    for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
-                        y_coord.append(y_coord[-1] - (max_y - min_y) * k_top_view[i])
-                
-                trapezium = Trapezium(trapezium_x, y_coord, chessboard_path)
-                trapezium.plot_graph()
-                
-            # Map Chess Piece
-            if chessboard_mapped and (time.time() - start_time > chesspiece_delay) and chesspiece_iteration < 5:
-                chesspiece_iteration += 1
-                print(f"{chesspiece_iteration}th chesspiece iteration")
-                print("Mapping chesspiece")
-                start_time = time.time()
-                cv.imwrite(chesspiece_path, frame)
-                json_data2 = model2.predict(chesspiece_path).json()
-                # json_str2 = json.dumps(json_data2, indent=4) # pretty json_data2
-                # print (json_str2)
-                im_chesspiece = cv.imread(chesspiece_path)
-                im_chesspiece_on_chessboard = cv.imread(chessboard_mapped_path)
-
-                # Loop through all predictions
-                for prediction in json_data2['predictions']:
-                    x = int(prediction['x'])
-                    y = int(prediction['y'])
-                    height = int(prediction['height'])
-                    chess_class = prediction['class']
-                    color = (0, 255, 0)  # Default to green for any unknown class
-                    
-                    # Determine the color of the circle based on the chess piece color
-                    if 'white' in chess_class:
-                        chess_class = 'white'
-                        color = (255, 255, 255)  # White for white pieces
-                    elif 'black' in chess_class:
-                        chess_class = 'black'
-                        color = (119,136,153)  # Black (LightSlateGray) for black pieces
-                        continue
-
-                    # Draw a circle around the chess piece
-                    # Syntax: cv.circle(image, center_coordinates, radius, color, thickness)
-                    if side_view:
-                        im_chesspiece = cv.circle(im_chesspiece, (x, y+int(height/4)), 10, color, -1)
-                        im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y+int(height/4)), 10, color, -1)
-                        temp = f'{trapezium.find_pos(x, y+int(height/2), side_view)}'
-                    else:
-                        im_chesspiece = cv.circle(im_chesspiece, (x, y), 10, color, -1)
-                        im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y), 10, color, -1)
-                        temp = f'{trapezium.find_pos(x, y, side_view)}'
-                    
-                    if temp != '0' and chess_class != 'black':
-                        cam_dict[temp]=chess_class
-                
-                cv.imshow("Chesspiece", im_chesspiece)
-                cv.imshow("Chesspiece2", im_chesspiece_on_chessboard)
-                
-
-                # compare cam_dict with chess_dict
-                if chesspiece_iteration == 5:
-                    print("cam_dict: \n", dict_to_board(cam_dict))
-                    print("chess_board: \n", chess_board)
-                    # print("chess_dict: \n", json.dumps(chess_dict, indent=4))
-                    for key, value in cam_dict.items():
-                        if key in chess_dict:
-                            if chess_dict[key] != value:
-                                # opponent_move = False
-                                
-                                ## METHOD 1
-                                # # Capture a frame and subtract to see a difference
-                                # for i in range (5):
-                                #     ret, frame = cap.read()
-                                #     im = cv.imread(chessboard_path)
-                                #     cv.imshow("difference", frame-im)
-                                #     cv.imwrite("difference.jpg", frame-im)
-                                #     # if (detect_movement(frame, im)):
-                                #     #     print("Opponent movement detected")
-                                
-                                ## METHOD 2
-                                # Compare the chess in chess_dict with cam_dict
-                                for key2, value2 in chess_dict.items():
-                                    if 'white' in value2 and key2 not in cam_dict:
-                                            chess_dict[key2] = 'empty'
-                                            chess_dict[key] = value
-                                            break
-                                
-                                chess_board = dict_to_board(chess_dict)
-                                print(chess_board)
-                                break
-                            
-                    chesspiece_iteration = 0
-                    cam_dict = {}
-                    chessboard_publisher.publish_board(chess_board)
-                    turn_listener.white_is_playing = False
-
-
-            # Display the resulting frame
-            cv.imshow('frame', frame)
-            
-            if cv.waitKey(1) == ord('q'):
-                break
-
-        else:
-            # Black turn, do nothing
-            # Sleep for a short duration to reduce CPU usage.
-            time.sleep(0.1)
-
-        # Check for shutdown signal (Ctrl+C) and handle other GUI events
-        if cv.waitKey(1) == ord('q'):
-            break
-
-    # When everything done, release the capture and destroy ROS nodes
-    cap.release()
-    cv.destroyAllWindows()
-    chessboard_publisher.destroy_node()
-    turn_listener.destroy_node()
-    rclpy.shutdown()
-
 # Run the main function
 if __name__ == "__main__":
     main()
@@ -898,8 +652,13 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
     return intersect_pts
 
 def main(args=None):
+    rclpy.init(args=args)
+    
+    turn_listener = TurnListener()  # Instantiate the listener for the turn
+    chessboard_publisher = ChessBoardPublisher()  # Instantiate your chessboard publisher
+
     start_time = time.time()
-    side_view = False
+    side_view = True
     chesspiece_iteration = 0
     cam_dict = {}
 
@@ -927,12 +686,6 @@ def main(args=None):
     ])
     chess_dict = board_to_dict(chess_board)
 
-    # Initialize opponent_move as True
-    # opponent_move = True
-
-    rclpy.init(args=args)
-    chessboard_publisher = ChessBoardPublisher()
-
     # Load the Board segmentation model
     rf = Roboflow(api_key="NYOkOMoPHPLUgPpjUxvf")
     project = rf.workspace().project("chessboard-segmentation")
@@ -940,7 +693,7 @@ def main(args=None):
     chessboard_mapped = 0
     print("Done loading project of chessboard weights")
 
-    # Load the chess piece detection model (commented out for now)
+    # Load the chess piece detection model
     project2 = rf.workspace().project("chess-pieces-2-etbrl")
     model2 = project2.version(1).model
     print("Done loading project of chess-piece weights")
@@ -951,179 +704,193 @@ def main(args=None):
         print("Cannot open camera")
         exit()
 
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
+    # As long as rclpy is not shutdown, continue running the loop
+    while rclpy.ok():
+        rclpy.spin_once(turn_listener, timeout_sec=0)  # Non-blocking
+        print("turn_listener.white_is_playing: ", turn_listener.white_is_playing)
+        if turn_listener.white_is_playing:
+            # Capture frame-by-frame
+            ret, frame = cap.read()
 
-        # If frame is read correctly, ret is True
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
+            # If frame is read correctly, ret is True
+            if not ret:
+                print("Can't receive frame (stream end?). Exiting ...")
+                break
 
-        # Image Processing
-        # Map chessboard -- only once
-        if not chessboard_mapped:
+            # Image Processing
+            # Map chessboard -- only once
+            if not chessboard_mapped:
 
-            cv.imwrite(chessboard_path, frame)
-            json_data = model.predict(chessboard_path).json()
-            # json_str = json.dumps(json_data, indent=4) # pretty json_data
-            # print (json_str)
+                cv.imwrite(chessboard_path, frame)
+                json_data = model.predict(chessboard_path).json()
+                # json_str = json.dumps(json_data, indent=4) # pretty json_data
+                # print (json_str)
 
-            im = cv.imread(chessboard_path)
-            # cv.imshow("chessboard", im)  
-            # implot = plt.imshow(im)
-            # plt.imshow(im)
-            
-            if len(json_data['predictions']) > 0:
-                print ("Chessboard detected")
-                segment_res = np.array(json_data['predictions'][0]['points'])
+                im = cv.imread(chessboard_path)
+                # cv.imshow("chessboard", im)  
+                # implot = plt.imshow(im)
+                # plt.imshow(im)
                 
-                # Display points
-                for point in segment_res:
-                    # plt.scatter(point['x'], point['y'], color="red", s=10)
-                    im_chessboard = cv.circle(im, (int(point['x']), int(point['y'])), 2, (0,0,255), -1)
-                # plt.show()
-                # cv.imshow("chessboard boundary", im_chessboard)  
+                if len(json_data['predictions']) > 0:
+                    print ("Chessboard detected")
+                    segment_res = np.array(json_data['predictions'][0]['points'])
+                    
+                    # Display points
+                    for point in segment_res:
+                        # plt.scatter(point['x'], point['y'], color="red", s=10)
+                        im_chessboard = cv.circle(im, (int(point['x']), int(point['y'])), 2, (0,0,255), -1)
+                    # plt.show()
+                    # cv.imshow("chessboard boundary", im_chessboard)  
 
-                chessboard_mapped = 1
-                print ("Chessboard segmented")
-            else:
-                print ("Chessboard not detected")
-
-            # Process the chessboard
-            print ("Chessboard corner processing...")
-
-            if side_view:
-                corners = findVertices(json_data)
-            else:
-                corners = findVertices(json_data)
-                corners[1][0] = corners[1][0] + 7 # offset due to model not properly segmented the bottom right
-                corners[2][1] = corners[2][1] + 2 # offset due to model not properly segmented the top right
-            print("corners:", corners)
-            for point in corners:
-                # plt.scatter(point['x'], point['y'], color="red", s=10)
-                im_chessboard_corners = cv.circle(im, (int(point[0]), int(point[1])), 10, (0,255,255), -1)
-            # plt.show()
-            cv.imshow("chessboard corners", im_chessboard_corners)
-            print ("Chessboard corners plotted")
-
-            # Each boxes
-            trapezium_x = [corners[i][0] for i in [3, 2, 1, 0, 3]]
-            
-            min_y = (corners[2][1] + corners[3][1]) / 2
-            max_y = (corners[0][1] + corners[1][1]) / 2
-
-            k_side_view = [0.5/6, 0.5/6, 0.65/6, 0.7/6, 0.7/6, 0.85/6, 1/6, 1.1/6]
-            k_top_view = [0.65/6.3, 0.7/6.3, 0.75/6.3, 0.8/6.3, 0.85/6.3, 0.85/6.3, 0.9/6.3, 0.9/6.3]
-
-            y_coord = [max_y]
-            
-            if side_view:
-                for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
-                    y_coord.append(y_coord[-1] - (max_y - min_y) * k_side_view[i])
-            else:
-                # y_coord = np.linspace((corners[2][1]+corners[3][1])/2, (corners[0][1]+corners[1][1])/2, 9)
-                for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
-                    y_coord.append(y_coord[-1] - (max_y - min_y) * k_top_view[i])
-            
-            trapezium = Trapezium(trapezium_x, y_coord, chessboard_path)
-            trapezium.plot_graph()
-            
-        # Map Chess Piece
-        if chessboard_mapped and (time.time() - start_time > chesspiece_delay) and chesspiece_iteration < 5:
-            chesspiece_iteration += 1
-            print(f"{chesspiece_iteration}th chesspiece iteration")
-            print("Mapping chesspiece")
-            start_time = time.time()
-            cv.imwrite(chesspiece_path, frame)
-            json_data2 = model2.predict(chesspiece_path).json()
-            # json_str2 = json.dumps(json_data2, indent=4) # pretty json_data2
-            # print (json_str2)
-            im_chesspiece = cv.imread(chesspiece_path)
-            im_chesspiece_on_chessboard = cv.imread(chessboard_mapped_path)
-
-            # Loop through all predictions
-            for prediction in json_data2['predictions']:
-                x = int(prediction['x'])
-                y = int(prediction['y'])
-                height = int(prediction['height'])
-                chess_class = prediction['class']
-                color = (0, 255, 0)  # Default to green for any unknown class
-                
-                # Determine the color of the circle based on the chess piece color
-                if 'white' in chess_class:
-                    chess_class = 'white'
-                    color = (255, 255, 255)  # White for white pieces
-                elif 'black' in chess_class:
-                    chess_class = 'black'
-                    color = (119,136,153)  # Black (LightSlateGray) for black pieces
-                    continue
-
-                # Draw a circle around the chess piece
-                # Syntax: cv.circle(image, center_coordinates, radius, color, thickness)
-                if side_view:
-                    im_chesspiece = cv.circle(im_chesspiece, (x, y+int(height/4)), 10, color, -1)
-                    im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y+int(height/4)), 10, color, -1)
-                    temp = f'{trapezium.find_pos(x, y+int(height/2), side_view)}'
+                    chessboard_mapped = 1
+                    print ("Chessboard segmented")
                 else:
-                    im_chesspiece = cv.circle(im_chesspiece, (x, y), 10, color, -1)
-                    im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y), 10, color, -1)
-                    temp = f'{trapezium.find_pos(x, y, side_view)}'
+                    print ("Chessboard not detected")
+
+                # Process the chessboard
+                print ("Chessboard corner processing...")
+
+                if side_view:
+                    corners = findVertices(json_data)
+                else:
+                    corners = findVertices(json_data)
+                    corners[1][0] = corners[1][0] + 7 # offset due to model not properly segmented the bottom right
+                    corners[2][1] = corners[2][1] + 2 # offset due to model not properly segmented the top right
+                print("corners:", corners)
+                for point in corners:
+                    # plt.scatter(point['x'], point['y'], color="red", s=10)
+                    im_chessboard_corners = cv.circle(im, (int(point[0]), int(point[1])), 10, (0,255,255), -1)
+                # plt.show()
+                cv.imshow("chessboard corners", im_chessboard_corners)
+                print ("Chessboard corners plotted")
+
+                # Each boxes
+                trapezium_x = [corners[i][0] for i in [3, 2, 1, 0, 3]]
                 
-                if temp != '0' and chess_class != 'black':
-                    cam_dict[temp]=chess_class
-            
-            cv.imshow("Chesspiece", im_chesspiece)
-            cv.imshow("Chesspiece2", im_chesspiece_on_chessboard)
-            
+                min_y = (corners[2][1] + corners[3][1]) / 2
+                max_y = (corners[0][1] + corners[1][1]) / 2
 
-            # compare cam_dict with chess_dict
-            if chesspiece_iteration == 5:
-                print("cam_dict: \n", dict_to_board(cam_dict))
-                print("chess_board: \n", chess_board)
-                # print("chess_dict: \n", json.dumps(chess_dict, indent=4))
-                for key, value in cam_dict.items():
-                    if key in chess_dict:
-                        if chess_dict[key] != value:
-                            # opponent_move = False
-                            
-                            ## METHOD 1
-                            # # Capture a frame and subtract to see a difference
-                            # for i in range (5):
-                            #     ret, frame = cap.read()
-                            #     im = cv.imread(chessboard_path)
-                            #     cv.imshow("difference", frame-im)
-                            #     cv.imwrite("difference.jpg", frame-im)
-                            #     # if (detect_movement(frame, im)):
-                            #     #     print("Opponent movement detected")
-                            
-                            ## METHOD 2
-                            # Compare the chess in chess_dict with cam_dict
-                            for key2, value2 in chess_dict.items():
-                                if 'white' in value2 and key2 not in cam_dict:
-                                        chess_dict[key2] = 'empty'
-                                        chess_dict[key] = value
-                                        break
-                            
-                            chess_board = dict_to_board(chess_dict)
-                            print(chess_board)
-                            break
-                        
-                chesspiece_iteration = 0
-                cam_dict = {}
-                chessboard_publisher.publish_board(chess_board)
+                k_side_view = [0.5/6, 0.5/6, 0.65/6, 0.7/6, 0.7/6, 0.85/6, 1/6, 1.1/6]
+                k_top_view = [0.65/6.3, 0.7/6.3, 0.75/6.3, 0.8/6.3, 0.85/6.3, 0.85/6.3, 0.9/6.3, 0.9/6.3]
 
-        # Display the resulting frame
-        cv.imshow('frame', frame)
-        
+                y_coord = [max_y]
+                
+                if side_view:
+                    for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
+                        y_coord.append(y_coord[-1] - (max_y - min_y) * k_side_view[i])
+                else:
+                    # y_coord = np.linspace((corners[2][1]+corners[3][1])/2, (corners[0][1]+corners[1][1])/2, 9)
+                    for i in range(7, -1, -1 ):  # 8 more y-values to make a total of 9
+                        y_coord.append(y_coord[-1] - (max_y - min_y) * k_top_view[i])
+                
+                trapezium = Trapezium(trapezium_x, y_coord, chessboard_path)
+                trapezium.plot_graph()
+                
+            # Map Chess Piece
+            if chessboard_mapped and (time.time() - start_time > chesspiece_delay) and chesspiece_iteration < 5:
+                chesspiece_iteration += 1
+                print(f"{chesspiece_iteration}th chesspiece iteration")
+                print("Mapping chesspiece")
+                start_time = time.time()
+                cv.imwrite(chesspiece_path, frame)
+                json_data2 = model2.predict(chesspiece_path).json()
+                # json_str2 = json.dumps(json_data2, indent=4) # pretty json_data2
+                # print (json_str2)
+                im_chesspiece = cv.imread(chesspiece_path)
+                im_chesspiece_on_chessboard = cv.imread(chessboard_mapped_path)
+
+                # Loop through all predictions
+                for prediction in json_data2['predictions']:
+                    x = int(prediction['x'])
+                    y = int(prediction['y'])
+                    height = int(prediction['height'])
+                    chess_class = prediction['class']
+                    color = (0, 255, 0)  # Default to green for any unknown class
+                    
+                    # Determine the color of the circle based on the chess piece color
+                    if 'white' in chess_class:
+                        chess_class = 'white'
+                        color = (255, 255, 255)  # White for white pieces
+                    elif 'black' in chess_class:
+                        chess_class = 'black'
+                        color = (119,136,153)  # Black (LightSlateGray) for black pieces
+                        continue
+
+                    # Draw a circle around the chess piece
+                    # Syntax: cv.circle(image, center_coordinates, radius, color, thickness)
+                    if side_view:
+                        im_chesspiece = cv.circle(im_chesspiece, (x, y+int(height/4)), 10, color, -1)
+                        im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y+int(height/4)), 10, color, -1)
+                        temp = f'{trapezium.find_pos(x, y+int(height/2), side_view)}'
+                    else:
+                        im_chesspiece = cv.circle(im_chesspiece, (x, y), 10, color, -1)
+                        im_chesspiece_on_chessboard = cv.circle(im_chesspiece_on_chessboard, (x, y), 10, color, -1)
+                        temp = f'{trapezium.find_pos(x, y, side_view)}'
+                    
+                    if temp != '0' and chess_class != 'black':
+                        cam_dict[temp]=chess_class
+                
+                cv.imshow("Chesspiece", im_chesspiece)
+                cv.imshow("Chesspiece2", im_chesspiece_on_chessboard)
+                
+
+                # compare cam_dict with chess_dict
+                if chesspiece_iteration == 5:
+                    print("cam_dict: \n", dict_to_board(cam_dict))
+                    print("chess_board: \n", chess_board)
+                    # print("chess_dict: \n", json.dumps(chess_dict, indent=4))
+                    for key, value in cam_dict.items():
+                        if key in chess_dict:
+                            if chess_dict[key] != value:
+                                # opponent_move = False
+                                
+                                ## METHOD 1
+                                # # Capture a frame and subtract to see a difference
+                                # for i in range (5):
+                                #     ret, frame = cap.read()
+                                #     im = cv.imread(chessboard_path)
+                                #     cv.imshow("difference", frame-im)
+                                #     cv.imwrite("difference.jpg", frame-im)
+                                #     # if (detect_movement(frame, im)):
+                                #     #     print("Opponent movement detected")
+                                
+                                ## METHOD 2
+                                # Compare the chess in chess_dict with cam_dict
+                                for key2, value2 in chess_dict.items():
+                                    if 'white' in value2 and key2 not in cam_dict:
+                                            chess_dict[key2] = 'empty'
+                                            chess_dict[key] = value
+                                            break
+                                
+                                chess_board = dict_to_board(chess_dict)
+                                print(chess_board)
+                                break
+                            
+                    chesspiece_iteration = 0
+                    cam_dict = {}
+                    chessboard_publisher.publish_board(chess_board)
+
+
+            # Display the resulting frame
+            cv.imshow('frame', frame)
+            
+            if cv.waitKey(1) == ord('q'):
+                break
+
+        else:
+            # Black turn, do nothing
+            # Sleep for a short duration to reduce CPU usage.
+            time.sleep(0.1)
+
+        # Check for shutdown signal (Ctrl+C) and handle other GUI events
         if cv.waitKey(1) == ord('q'):
             break
 
-    # When everything done, release the capture
+    # When everything done, release the capture and destroy ROS nodes
     cap.release()
     cv.destroyAllWindows()
-
     chessboard_publisher.destroy_node()
+    turn_listener.destroy_node()
     rclpy.shutdown()
 
 # Run the main function
