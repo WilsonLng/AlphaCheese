@@ -20,6 +20,7 @@ positionwbe_2 = np.array([
 
 class ChessGameNode(Node):
     def __init__(self):
+        # chessboard publisher
         super().__init__('chess_game_node')
         self.subscription = self.create_subscription(
             String,
@@ -43,6 +44,19 @@ class ChessGameNode(Node):
 
         self.fen_loop = self.lines[-1]
         self.previous_state = None
+
+        # turn publisher
+        self.turn_publisher = self.create_publisher(String, 'whose_turn', 10)
+        self.default_subscriber = self.create_subscription(
+            String,
+            'default_or_not',
+            self.default_callback,
+            10)
+        self.waiting_for_default = False
+
+        # Publish 'white is playing' initially
+        self.publish_turn('white is playing')
+
         print("Initialisation done")
 
     def listener_callback(self, msg):
@@ -53,14 +67,18 @@ class ChessGameNode(Node):
         # Convert the received chessboard state to the appropriate format
         # and perform the logic for the white player's turn
         # ...
-        
+
         if self.previous_state is not None:  # Ensure previous state exists
-            if not np.array_equal(current_state, self.previous_state):
+            if not np.array_equal(current_state, self.previous_state): 
                 # A change has been detected; process the new state and suggest a move
                 self.get_logger().info('Change detected in chessboard state.')
 
+                self.publish_turn('black is playing')
+                # Now wait for 'default' to be sent to 'default_or_not' topic
+                self.waiting_for_default = True
+
                 # 1. Beginning of a turn.
-                fen_1 = fen_loop
+                fen_1 = self.fen_loop
                 position_1 = fen_to_position(fen_1)
                 positionwbe_1 = position_to_positionwbe(position_1)
                 positionbin_1 = position_or_positionwbe_to_positionbin(position_1)
@@ -71,7 +89,7 @@ class ChessGameNode(Node):
                 
                 # 2. White plays.
 
-                positionwbe_2 = vision_to_positionwbe(positionwbe_1, current_state)
+                positionwbe_2 = vision_to_positionwbe(current_state, positionwbe_1)
                 # positionwbe_2 = np.array([
                 #     ["b", "b", "b", "b", "b", "b", "b", "b"],
                 #     ["b", "b", "b", "b", "b", "b", "b", "b"],
@@ -116,7 +134,7 @@ class ChessGameNode(Node):
                 fen_2 = position_to_fen(position_2, player, castling, ep, hm, fm)
                 
                 # 3. Black plays.
-                suggested_move = suggest_move(fen_2, stockfish)
+                suggested_move = suggest_move(fen_2, self.stockfish)
                 # suggested_move = self.determine_move(current_state, stockfish)
                 if suggested_move:
                     index_fig0 = chessindex_to_index(suggested_move[0:2])
@@ -129,7 +147,7 @@ class ChessGameNode(Node):
                         # 3a. Black executed a move of a figure.
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " m"
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
-                        self.publish_move(suggested_move)
+                        self.publish_move(formatted_move)
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = position_2[index_fig0][0]
 
@@ -137,7 +155,7 @@ class ChessGameNode(Node):
                         # 3b. Black executed a capture.
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " x"
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
-                        self.publish_move(suggested_move)
+                        self.publish_move(formatted_move)
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = position_2[index_fig0][0]
 
@@ -145,7 +163,7 @@ class ChessGameNode(Node):
                         # 3c. Black executed a move of a figure with promotion
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " =m" + suggested_move[4]
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
-                        self.publish_move(suggested_move)
+                        self.publish_move(formatted_move)
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = suggested_move[4]
 
@@ -153,7 +171,7 @@ class ChessGameNode(Node):
                         # 3d. Black executed a capture with promotion
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " =x" + suggested_move[4]
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
-                        self.publish_move(suggested_move)
+                        self.publish_move(formatted_move)
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = suggested_move[4]
 
@@ -164,18 +182,32 @@ class ChessGameNode(Node):
                     fm = fm + 1
                     fen_3 = position_to_fen(position_3, player, castling, ep, hm, fm)
 
-                    fen_loop = fen_3
+                    self.fen_loop = fen_3
+        
+        self.previous_state = current_state
+        print('cd')
+        #print(self.previous_state)
+
+    def publish_turn(self, turn):
+        msg = String()
+        msg.data = turn
+        self.turn_publisher.publish(msg)
+        self.get_logger().info(f"Publishing to whose_turn: '{turn}'")
+    
+    def default_callback(self, msg):
+        # Triggered when a message is received on 'default_or_not' topic
+        if msg.data == 'default' and self.waiting_for_default:
+            # The camera is now in the default position, ready to capture the whole board
+            self.publish_turn('white is playing')
+            self.waiting_for_default = False  # Reset the flag
 
     def publish_move(self, move):
         msg = String()
         msg.data = move
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing move to which_position: "%s"' % move)
+        self.waiting_for_default = True
 
-    def determine_move(self, fen_position, stockfish_engine):
-        engine = stockfish_engine
-        engine.set_fen_position(fen_position)
-        return engine.get_best_move()
 
 def fen_to_position(fen_num):
     position = np.empty((8, 8), dtype=object)
@@ -274,6 +306,7 @@ def switch_players(fen):
         return None
 
 def suggest_move(fen_position, stockfish):
+    print("fen_position:", fen_position)
     engine = stockfish
     engine.set_fen_position(fen_position)
     suggested_move = engine.get_best_move()
@@ -325,7 +358,8 @@ def main(args=None):
     chess_game_node = ChessGameNode()
 
     try:
-        rclpy.spin(chess_game_node)  # spin() will block execution and keep the node alive
+        while rclpy.ok():
+            rclpy.spin(chess_game_node)  # spin() will block execution and keep the node alive
     except KeyboardInterrupt:
         pass  # Handle Ctrl-C gracefully
 
