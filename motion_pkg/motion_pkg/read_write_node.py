@@ -47,6 +47,7 @@ from motion_pkg.robotics_def import *
 from robot_interfaces import *
 from robot_interfaces.msg import SetPosition
 from robot_interfaces.srv import GetPosition
+import time
 
 if os.name == 'nt':
     import msvcrt
@@ -67,6 +68,7 @@ else:
 # Control table address
 ADDR_TORQUE_ENABLE      = 24               # Control table address is different in Dynamixel model
 ADDR_GOAL_POSITION      = 30
+ADDR_MOVING_SPEED       = 32
 ADDR_PRESENT_POSITION   = 36
 
 # Protocol version
@@ -96,8 +98,17 @@ class pyNode(Node):
         self.get_logger().info("Hello World")
 
     def set_goal_pos_callback(self, data):
+        def c(val):
+            return val * 1023 / 300
+        
         print("Set Goal Position of ID %s = %s" % (data.id, data.position))
-        dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, data.id, ADDR_GOAL_POSITION, data.position)
+        dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_MOVING_SPEED, 59)
+        dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(133)))
+
+        time.sleep(3)
+
+        dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_MOVING_SPEED, 59)
+        dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(114)))
 
     # Added third argument as callback doesn't work with just two
     def get_present_pos(self, req, res):
