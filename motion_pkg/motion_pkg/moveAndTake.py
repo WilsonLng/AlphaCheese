@@ -137,7 +137,7 @@ class pyNode(Node):
             'stretch': [512,c(155.86),c(54.20),c(250.78),c(0)],
             'test': [c(150), c(153.22), c(126.86), c(130.08), c(0)]
         }
-
+        # new close and open
         close = 114
         open = 160
 
