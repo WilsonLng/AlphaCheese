@@ -337,38 +337,9 @@ class pyNode(Node):
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_MOVING_SPEED, speed)
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 1, ADDR_GOAL_POSITION, int(c(206)))
             time.sleep(1)
-            servo_ids = [2, 3, 4]
-            for servo_id, position in zip(servo_ids, chessPositions['after_out'][1:4]):
-                print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
+            
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
             time.sleep(2)
-
-            for servo_id, position in zip(servo_ids, chessPositions['before_out'][1:4]):
-                print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
-                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
-                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
-                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
-
-            time.sleep(2)
-
-            # before_out: [c(189.21), c(145.90), c(97.56), c(134.47), c(166.41), c(205.66), c(122.75), c(97.56), c(134.47), c(166.41)]
-
-
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_MOVING_SPEED, speed)
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_GOAL_POSITION, int(130))
-
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 3, ADDR_MOVING_SPEED, speed)
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 3, ADDR_GOAL_POSITION, int(88))
-
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_MOVING_SPEED, speed)
-            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_GOAL_POSITION, int(position))
-
-            # 
-            #.sleep(2)
-            
 
         def moveToDefault(speed=60):
             servo_ids = [1, 2, 3, 4]
@@ -427,7 +398,7 @@ class pyNode(Node):
             dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, servo_id, ADDR_PRESENT_POSITION)
             print("Present Position of ID %s = %s" % (servo_id, dxl_present_position))
             res.positions.append(int(dxl_present_position))
-            
+
             self.dxl_present_positions[servo_id] = int(dxl_present_position)
 
         return res
