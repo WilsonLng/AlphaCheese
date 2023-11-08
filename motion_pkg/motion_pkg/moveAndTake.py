@@ -116,7 +116,7 @@ class pyNode(Node):
             'f3': [c(164.65), c(126.56), c(91.11), c(136.23), c(166.41), c(164.65), c(132.71), c(122.17), c(160.84), c(166.41)],
             'f2': [c(162.89), c(120.12), c(96.39), c(147.07), c(166.41), c(162.89), c(128.32), c(119.82), c(168.75), c(166.41)],
             'f1': [c(160.84), c(122.46), c(71.48), c(146.48), c(166.41), c(160.84), c(106.05), c(70.02), c(135.94), c(166.41)],
-            'g8': [c(197.46), c(162.94), c(168.16), c(166.70), c(166.41), c(197.46), c(160.89), c(181.35), c(183.40), c(166.41)],
+            'g8': [c(197.46), c(162.94), c(168.16), c(166.70), c(166.41), c(197.46), c(158.89), c(181.35), c(183.40), c(166.41)],
             'g7': [c(186.62), c(164.06), c(154.39), c(153.22),c (166.41), c(186.62), c(155.86), c(171.39), c(179.00), c(166.41)],
             'g6': [c(182.81), c(157.91), c(151.76), c(160.84), c(166.41), c(182.81), c(150.88), c(163.77), c(179.00), c(166.41)],
             'g5': [c(176.07), c(154.98), c(138.28), c(149.12), c(166.41), c(176.07), c(147.36), c(148.24), c(171.39), c(166.41)],
@@ -133,7 +133,7 @@ class pyNode(Node):
             'h2': [c(174.9), c(111.62), c(71.19), c(127.15), c(166.41), c(174.9), c(108.40), c(67.97), c(131.84), c(166.41)],
             'h1': [c(172.27), c(106.93), c(56.84), c(134.47), c(166.41), c(172.27), c(101.95), c(57.13), c(133.01), c(166.41)],
             'default': [c(152.34), c(188.09), c(150.88), c(89.06), c(0.00)],
-            'before_out': [c(189.21), c(145.90), c(97.56), c(134.47), c(166.41)],
+            'before_out': [c(189.21), c(145.90), c(97.56), c(134.47), c(166.41), c(205.66), c(122.75), c(97.56), c(134.47), c(166.41)],
             'after_out': [c(205.66), c(122.75), c(97.56), c(134.47), c(166.41)],
             'out': [c(206.84), c(110.45), c(56.54), c(117.19), c(45)],
             'stretch': [512,c(155.86),c(54.20),c(250.78),c(0)],
@@ -345,11 +345,30 @@ class pyNode(Node):
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(close)))
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
             time.sleep(2)
+
             for servo_id, position in zip(servo_ids, chessPositions['before_out'][1:4]):
                 print("Set Goal Position of ID %s = %s %s" % (servo_id, int(position), position*300/1023))
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_MOVING_SPEED, speed)
                 dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, servo_id, ADDR_GOAL_POSITION, int(position))
+                dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 5, ADDR_GOAL_POSITION, int(c(open)))
+
             time.sleep(2)
+
+            # before_out: [c(189.21), c(145.90), c(97.56), c(134.47), c(166.41), c(205.66), c(122.75), c(97.56), c(134.47), c(166.41)]
+
+
+            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_MOVING_SPEED, speed)
+            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 2, ADDR_GOAL_POSITION, int(130))
+
+            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 3, ADDR_MOVING_SPEED, speed)
+            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 3, ADDR_GOAL_POSITION, int(88))
+
+            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_MOVING_SPEED, speed)
+            # dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, 4, ADDR_GOAL_POSITION, int(position))
+
+            # 
+            #.sleep(2)
+            
 
         def moveToDefault(speed=60):
             servo_ids = [1, 2, 3, 4]
@@ -408,7 +427,7 @@ class pyNode(Node):
             dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, servo_id, ADDR_PRESENT_POSITION)
             print("Present Position of ID %s = %s" % (servo_id, dxl_present_position))
             res.positions.append(int(dxl_present_position))
-
+            
             self.dxl_present_positions[servo_id] = int(dxl_present_position)
 
         return res
