@@ -50,6 +50,8 @@ DXL_MOVING_STATUS_THRESHOLD = 20                # Dynamixel moving status thresh
 portHandler = PortHandler(DEVICENAME)
 packetHandler = PacketHandler(PROTOCOL_VERSION)
 
+# THIS IS THE LATEST CODEEEEEEEEEEEEEEEEEEE
+
 class pyNode(Node):
     def __init__(self):
         super().__init__('moveAndTake')
