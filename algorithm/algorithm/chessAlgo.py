@@ -6,6 +6,7 @@ import os
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from robot_interfaces.msg import OneMove
 
 positionwbe_2 = np.array([
                     ["b", "b", "b", "b", "b", "b", "b", "b"],
@@ -27,7 +28,7 @@ class ChessGameNode(Node):
             'chessboard_state',
             self.listener_callback,
             10)
-        self.publisher_ = self.create_publisher(String, 'which_position', 10)
+        self.publisher_ = self.create_publisher(OneMove, 'which_position', 10)
         self.subscription  # prevent unused variable warning
 
         # Initialize Stockfish engine
@@ -148,6 +149,7 @@ class ChessGameNode(Node):
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " m"
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
                         self.publish_move(formatted_move)
+                        # self.publish_move("{location: '" + formatted_move + "'}")
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = position_2[index_fig0][0]
 
@@ -155,6 +157,7 @@ class ChessGameNode(Node):
                         # 3b. Black executed a capture.
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " x"
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
+                        # self.publish_move("{location: '" + formatted_move + "'}")
                         self.publish_move(formatted_move)
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = position_2[index_fig0][0]
@@ -164,6 +167,7 @@ class ChessGameNode(Node):
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " =m" + suggested_move[4]
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
                         self.publish_move(formatted_move)
+                        # self.publish_move("{location: '" + formatted_move + "'}")
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = suggested_move[4]
 
@@ -172,6 +176,7 @@ class ChessGameNode(Node):
                         formatted_move = suggested_move[0:2] + " " + suggested_move[2:4] + " =x" + suggested_move[4]
                         self.get_logger().info('Suggested Move: "%s"' % formatted_move)
                         self.publish_move(formatted_move)
+                        # self.publish_move("{location: '" + formatted_move + "'}")
                         print("Input to the robotic arm: ", formatted_move)
                         position_3[index_fig1] = suggested_move[4]
 
@@ -202,8 +207,8 @@ class ChessGameNode(Node):
             self.waiting_for_default = False  # Reset the flag
 
     def publish_move(self, move):
-        msg = String()
-        msg.data = move
+        msg = OneMove()
+        msg.location = move
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing move to which_position: "%s"' % move)
         self.waiting_for_default = True

@@ -652,13 +652,14 @@ def findVertices(json_data,range_ymax = 15,range_ymin =5 ,range_xmax = 100, rang
     return intersect_pts
 
 def main(args=None):
+    first_time = True
     rclpy.init(args=args)
     
     turn_listener = TurnListener()  # Instantiate the listener for the turn
     chessboard_publisher = ChessBoardPublisher()  # Instantiate your chessboard publisher
 
     start_time = time.time()
-    side_view = True
+    side_view = False
     chesspiece_iteration = 0
     cam_dict = {}
 
@@ -833,7 +834,9 @@ def main(args=None):
                 cv.imshow("Chesspiece", im_chesspiece)
                 cv.imshow("Chesspiece2", im_chesspiece_on_chessboard)
                 
-
+                if first_time:
+                    chessboard_publisher.publish_board(chess_board)
+                    first_time = False
                 # compare cam_dict with chess_dict
                 if chesspiece_iteration == 5:
                     print("cam_dict: \n", dict_to_board(cam_dict))
@@ -868,6 +871,8 @@ def main(args=None):
                             
                     chesspiece_iteration = 0
                     cam_dict = {}
+                    
+                        
                     chessboard_publisher.publish_board(chess_board)
 
 
