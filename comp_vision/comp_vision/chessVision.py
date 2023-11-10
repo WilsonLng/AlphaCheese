@@ -8,6 +8,7 @@ import time
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+import os
 
 chesspiece_delay = 0.5 # in seconds
 
@@ -687,8 +688,12 @@ def main(args=None):
     ])
     chess_dict = board_to_dict(chess_board)
 
+    roboflow_api_key = os.getenv('ROBOFLOW_API_KEY')
+    if roboflow_api_key is None:
+        raise ValueError("ROBOFLOW_API_KEY environment variable is not set")
+
     # Load the Board segmentation model
-    rf = Roboflow(api_key="NYOkOMoPHPLUgPpjUxvf")
+    rf = Roboflow(api_key=roboflow_api_key)
     project = rf.workspace().project("chessboard-segmentation")
     model = project.version(1).model
     chessboard_mapped = 0
